@@ -301,7 +301,7 @@ for i in range(0,len(item)):
 mmtail=mmtail+'\n'
 
 connectivity=''
-with open(name+'.xyz','r') as f:
+with open(name+'.gau','r') as f:
     ifread=0
     for line in f.readlines():
         if line=='\n':
