@@ -16,8 +16,8 @@ def f2s(fl):
     return "{: .12f}".format(fl)
 class atoms(object):
     number=0
-    bohr=0.5291772109217 # bohr to angstrom
-    idtoname={'1':'H','6':'C','7':'N','8':'O','15':'P','16':'S','17':'Cl','26':'Fe','28':'Ni','29':'Cu','30':'Zn'}
+    bohr=0.5291772086 # bohr to angstrom
+    idtoname={'1':'H','6':'C','7':'N','8':'O','13':'Al','15':'P','16':'S','17':'Cl','26':'Fe','28':'Ni','29':'Cu','30':'Zn'}
 
     def __init__(self,elementid,xyz):  # int,[float,float,float]
         self.elementid=elementid   # int

@@ -73,4 +73,43 @@ MOD4      RE
   Cu          1.476   0.03198620         Cu2+ For TIP3P: Li,PF; Merz,Jr; JCTC DOI:10.1021/ct400751u
   Zn          1.455   0.02662782         Zn2+ For TIP3P: Li,PF; Merz,Jr; JCTC DOI:10.1021/ct400751u
   Al          1.369   0.01128487         Al3+ For TIP3P: Li,PF; Merz,Jr; JPCB DOI:10.1021/jp505875v
+  H           0.6000  0.0157            !Ferguson base pair geom.
+  HO          0.0000  0.0000             OPLS Jorgensen, JACS,110,(1988),1657
+  HS          0.6000  0.0157             W. Cornell CH3SH --> CH3OH FEP
+  HC          1.4870  0.0157             OPLS
+  H1          1.3870  0.0157             Veenstra et al JCC,8,(1992),963 
+  H2          1.2870  0.0157             Veenstra et al JCC,8,(1992),963 
+  H3          1.1870  0.0157             Veenstra et al JCC,8,(1992),963 
+  HP          1.1000  0.0157             Veenstra et al JCC,8,(1992),963
+  HA          1.4590  0.0150             Spellmeyer 
+  H4          1.4090  0.0150             Spellmeyer, one electrowithdr. neighbor
+  H5          1.3590  0.0150             Spellmeyer, two electrowithdr. neighbor
+  HW          0.0000  0.0000             TIP3P water model
+  HZ          1.4590  0.0150             H bonded to sp C (Howard et al JCC 16)
+  O           1.6612  0.2100             OPLS
+  O2          1.6612  0.2100             OPLS
+  OW          1.7683  0.1520             TIP3P water model
+  OH          1.7210  0.2104             OPLS 
+  OS          1.6837  0.1700             OPLS ether
+  OP          1.8500  0.1700             Steinbrecher/Latzer for 2- phosphate
+  C*          1.9080  0.0860             Spellmeyer
+  CI          1.9080  0.1094             parmbsc0
+  C5          1.9080  0.0860             Spellmeyer
+  C4          1.9080  0.0860             Spellmeyer
+  CT          1.9080  0.1094             Spellmeyer
+  CX          1.9080  0.1094             Spellmeyer  (was CT)
+  C           1.9080  0.0860             OPLS
+  N           1.8240  0.1700             OPLS
+  N3          1.8240  0.1700             OPLS
+  S           2.0000  0.2500             W. Cornell CH3SH and CH3SCH3 FEP's
+  SH          2.0000  0.2500             W. Cornell CH3SH and CH3SCH3 FEP's
+  P           2.1000  0.2000             JCC,7,(1986),230; 
+  MG          0.7926  0.8947             Mg2+ Aqvist JPC 1990,94,8021.(adapted)
+  C0          1.7131  0.459789           Ca2+ Aqvist JPC 1990,94,8021.(adapted)
+  Zn          1.10    0.0125             Zn2+, Merz,PAK, JACS,113,8262,(1991) 
+  F           1.75    0.061              Gough et al. JCC 13,(1992),963.
+  Cl          1.948   0.265              Fox, JPCB,102,8070,(98),flex.mdl CHCl3
+  Br          2.22    0.320              Junmei(?)
+  I           2.35    0.40               JCC,7,(1986),230;  
+  EP          0.00    0.0000             lone pair
 END

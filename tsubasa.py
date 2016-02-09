@@ -1,7 +1,7 @@
 #!/home/rwang013/apps/python/bin/python3
 
  #################################################################
- # Tsubasa -- Get ready for Parameterization
+ # Tsubasa -- Get ready for Hessian Fitting Parameterization
  # Automated Optimization, Freq&Hessian, RESP Charge Calculation
  # V0.1 Ruixing 2-Feb-2016
  #################################################################
@@ -30,6 +30,7 @@ freqhead=''
 resphead=''
 resptail=''
 mmhead=''
+# Read configs
 with open(name+'.cfg','r') as config:
     ifwrite=0
     for line in config.readlines():
@@ -126,7 +127,7 @@ freqname=GauFile('freq'+name)
 respname=GauFile('resp'+name)
 
 # Run Optimization
-with open(name+'.xyz','r') as initxyz:
+with open(name+'.gau','r') as initxyz:
     with open(optname.com(),'w') as f:
         f.write(opthead)
         f.write(initxyz.read())
