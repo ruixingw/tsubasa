@@ -30,27 +30,33 @@ freqhead=''
 resphead=''
 resptail=''
 mmhead=''
+ifwrite=0
 # Read configs
 with open(name+'.cfg','r') as config:
-    ifwrite=0
+
     for line in config.readlines():
        # Read commands
         if line.find('$g09rt')>=0:
             g09rt=line[line.find('=''')+2:len(line)-2]
+
         if line.find('$g09a2rt')>=0:
             g09a2rt=line[line.find('=''')+2:len(line)-2]
+
         if line.find('$antechamber')>=0:
             antechamber=line[line.find('=''')+2:len(line)-2]
+
         if line.find('$clean')>=0:
             clean=line[line.find('=''')+2:len(line)-2]
 
        # Read opthead
         if line.find('--opthead--')>=0:
             ifwrite=0
+
         if ifwrite==1:
             opthead=opthead+line
         if line.find('++opthead++')>=0:
             ifwrite=1
+
 
        # Read opttail
         if line.find('--opttail--')>=0:
@@ -101,24 +107,26 @@ class GauFile(object):
     def ac(self):
         return self.name+'.ac'
     def rung09(self):
-        print(g09rt+' '+self.com())
+        print('Runing g09 with: '+g09rt+' '+self.com())
         os.system(g09rt+' '+self.com())
     def rung09a2(self):
-        print(g09a2rt+' '+self.com())
+        print('Runing g09a2 with: '+g09a2rt+' '+self.com())
         os.system(g09a2rt+' '+self.com())
     def isover(self):
+        print('Waiting for g09...')
         while True:
             time.sleep(3)
             output=os.popen('tail -5 '+self.log())
             output=output.read()
-            os.system('clear')
-            print(output)
+
             if output.find('Normal termination')>=0:
+                print('..done\n\n')
                 break
             if output.find('Error termination')>=0:
                 print('Error termination in '+self.com())
                 quit()
     def getresp(self):
+        print('Runing antechamber: \n')
         os.system(antechamber+' -i '+self.log()+' -fi gout -o '+self.ac()+' -fo ac')
 
 
@@ -148,16 +156,18 @@ respname.rung09a2()
 respname.isover()
 respname.getresp()
 
-
+print('Clean directory: ')
 print(clean)
+print('\n')
 
 os.system(clean)
 
-os.system('formchk this.chk this.fchk')
+print('Format CHK file with formchk: ')
+os.system('formchk this.chk this.fchk\n\n')
 
 xyzlist=[]
 atomlist=['0']
-print('proceeding to read fchk...')
+print('Read fchk...')
 with open('this.fchk','r') as f:
     while True:
         string=f.readline()
@@ -184,7 +194,8 @@ with open('this.fchk','r') as f:
             break
 xyzlist=[float(x) for x in xyzlist]
 atomlist=[int(x) for x in atomlist]
-print('fchk read successfully\nproceeding to build mmxyz')
+
+print('...done\n\nBuild mmxyz...')
 
 for i in range(0,len(xyzlist),3):
     xyz.append(xyzlist[i:i+3])
@@ -207,7 +218,7 @@ for i in range(1,int(natoms)+1):
     mmxyz=mmxyz+at[i].elementname+'-'+at[i].atomtype+'-'+at[i].charge+'   '+f2s(at[i].x)+'   '+f2s(at[i].y)+'   '+f2s(at[i].z)+'\n'
 
 mmxyz=mmxyz+'\n'
-print('mmxyz built successfully\nproceeding to read internal coordinates')
+print('...done\n\nRead internal coordinates from optlog...')
 with open(optname.log(),'r') as f:
     while True:
         string=f.readline()
@@ -230,7 +241,7 @@ with open(optname.log(),'r') as f:
                 elif len(content)==4:
                     adddihd(content[0],content[1],content[2],content[3])
             break
-print('internal coordinates read\nproceeding to mmtail building')
+print('...done\n\nBuild mmtail...')
 
 for value in bonds.bl.values():
     bondfunc(value)
@@ -250,7 +261,7 @@ for key,value in dihdfunc.df.items():
     this=filter(lambda x:x.df.link==key, dihedrals.dl.values())
     this=list(set(this))
     for x in this:
-        input+=str(x.a.atomid)+'-'+str(x.d.atomid)+'\n'
+        input+=str(x.a.atomid)+'-'+str(x.b.atomid)+'-'+str(x.c.atomid)+'-'+str(x.d.atomid)+'\n'
     input+='next\n'
 for key,value in anglefunc.af.items():
     this=filter(lambda x:x.af.link==key, angles.al.values())
@@ -258,7 +269,7 @@ for key,value in anglefunc.af.items():
     total=0
     for x in this:
         total+=x.angle()
-        input+=str(x.a.atomid)+'-'+str(x.c.atomid)+'\n'
+        input+=str(x.a.atomid)+'-'+str(x.b.atomid)+'-'+str(x.c.atomid)+'\n'
     input+='next\n'
     total=total/len(this)
     total="{:.4f}".format(total)
@@ -316,3 +327,10 @@ with open(mmname.com(),'w') as f:
     f.write(mmxyz)
     f.write(connectivity)
     f.write(mmtail)
+
+print('...done\n\nEND')
+os.system('mkdir tsubasa')
+os.system('mv * tsubasa')
+os.system('mv tsubasa/mm* .')
+os.system('mv tsubasa/freq*.log .')
+os.system('mv tsubasa/input.inp .')
