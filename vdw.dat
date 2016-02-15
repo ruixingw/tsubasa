@@ -1,4 +1,3 @@
-MOD4      RE
   h1          1.3870  0.0157             Veenstra et al JCC,8,(1992),963 
   h2          1.2870  0.0157             Veenstra et al JCC,8,(1992),963 
   h3          1.1870  0.0157             Veenstra et al JCC,8,(1992),963 
@@ -70,9 +69,9 @@ MOD4      RE
   cl          1.948   0.265              Fox, JPCB,102,8070,(98),flex.mdl CHCl3
   br          2.02    0.420              Junmei, 2010
   i           2.15    0.50               Junmei, 2010
-  Cu          1.476   0.03198620         Cu2+ For TIP3P: Li,PF; Merz,Jr; JCTC DOI:10.1021/ct400751u
-  Zn          1.455   0.02662782         Zn2+ For TIP3P: Li,PF; Merz,Jr; JCTC DOI:10.1021/ct400751u
-  Al          1.369   0.01128487         Al3+ For TIP3P: Li,PF; Merz,Jr; JPCB DOI:10.1021/jp505875v
+  Cu          1.409   0.00063064         IOD Cu2+: Li,PF; Merz,Jr; JCTC2013 DOI:10.1021/ct400146w
+  Zn          1.395   0.01491700         IOD Zn2+: Li,PF; Merz,Jr; JCTC2013 DOI:10.1021/ct400146w
+  Al          1.297   0.00471279         Al3+ For TIP3P/IOD: Li,PF; Merz,Jr; JPCB DOI:10.1021/jp505875v Table3
   H           0.6000  0.0157            !Ferguson base pair geom.
   HO          0.0000  0.0000             OPLS Jorgensen, JACS,110,(1988),1657
   HS          0.6000  0.0157             W. Cornell CH3SH --> CH3OH FEP
@@ -106,10 +105,11 @@ MOD4      RE
   P           2.1000  0.2000             JCC,7,(1986),230; 
   MG          0.7926  0.8947             Mg2+ Aqvist JPC 1990,94,8021.(adapted)
   C0          1.7131  0.459789           Ca2+ Aqvist JPC 1990,94,8021.(adapted)
-  Zn          1.10    0.0125             Zn2+, Merz,PAK, JACS,113,8262,(1991) 
   F           1.75    0.061              Gough et al. JCC 13,(1992),963.
   Cl          1.948   0.265              Fox, JPCB,102,8070,(98),flex.mdl CHCl3
   Br          2.22    0.320              Junmei(?)
   I           2.35    0.40               JCC,7,(1986),230;  
   EP          0.00    0.0000             lone pair
-END
+  B           1.9800  0.0340             Added by HH (temporary) from A. Tafi et al. / European Journal of Medicinal Chemistry 40 (2005) 1134-1142
+  DU          1.4590  0.0150             Added by HH (temporary) for hydrogen (ha)
+  Si          2.1350  0.3100             Added by HH (temporary) for Vibert et al Si Chem. Sci., 2014, 5, 4716

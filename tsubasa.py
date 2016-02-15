@@ -1,4 +1,4 @@
-#!/home/rwang013/apps/python/bin/python3
+#!/usr/bin/python
 
  #################################################################
  # Tsubasa -- Get ready for Hessian Fitting Parameterization
@@ -15,13 +15,53 @@ if len(sys.argv)==1:
     os.system('cp '+pwd+'config.cfg .')
     quit()
 string=sys.argv[1]
-
+startfrom=0
+stopafter=0
 print('Read config from '+string+'\n')
 name=string.split('.')[0]
 string=string.split('.')[1]
 if string != 'cfg':
     print('Config must be .cfg')
     quit()
+vdwfile=''
+
+for x in sys.argv:
+    if x.find('--startfrom')>=0:
+        string=x.split(':')[1]
+        if string=='freq':
+            startfrom=1
+            print('Restart from Frequency calculation')
+        elif string=='resp':
+            startfrom=2
+            print('Restart from RESP calculation')
+        elif string=='antechamber':
+            startfrom=3
+            print('Restart from antechamber')
+        elif string=='readac':
+            startfrom=4
+            print('Restart from readac')
+
+    if x.find('--stopafter')>=0:
+        string=x.split(':')[1]
+        if string=='opt':
+            stopafter=1
+            print('Will stop after optimization')
+        elif string=='freq':
+            stopafter=2
+            print('Will stop after frequency')
+        elif string=='resp':
+            stopafter=3
+            print('Will stop after resp')
+        elif string=='antechamber':
+            stopafter=4
+            print('Will stop after antechamber')
+        elif string=='readac':
+            stopafter=5
+            print('Will stop after readac')
+
+    if x.find('--read-vdw-from')>=0:
+        vdwfile=x.split(':')[1]
+        print('External vdW parameter file provided:',vdwfile)
 
 
 opthead=''
@@ -134,27 +174,42 @@ optname=GauFile('opt'+name)
 freqname=GauFile('freq'+name)
 respname=GauFile('resp'+name)
 
-# Run Optimization
-with open(name+'.gau','r') as initxyz:
-    with open(optname.com(),'w') as f:
-        f.write(opthead)
-        f.write(initxyz.read())
-        f.write(opttail)
+# Run Calculations
+if startfrom<1:
+    with open(name+'.gau','r') as initxyz:
+        with open(optname.com(),'w') as f:
+            f.write(opthead)
+            f.write(initxyz.read())
+            f.write(opttail)
 
-optname.rung09()
-optname.isover()
+    optname.rung09()
+    optname.isover()
+    if stopafter==1:
+        print('User request stop after optimization')
+        quit()
+if startfrom<2:
+    with open(freqname.com(),'w') as f:
+        f.write(freqhead)
+    freqname.rung09()
+    freqname.isover()
+    if stopafter==2:
+        print('User request stop after frequency')
+        quit()
+if startfrom<3:
+    with open(respname.com(),'w') as f:
+        f.write(resphead)
+        f.write(resptail)
+    respname.rung09a2()
+    respname.isover()
+    if stopafter==3:
+        print('User request stop after resp')
+        quit()
+if startfrom<4:
+    respname.getresp()
+    if stopafter==4:
+        print('User request stop after antechamber')
+        quit()
 
-with open(freqname.com(),'w') as f:
-    f.write(freqhead)
-freqname.rung09()
-freqname.isover()
-
-with open(respname.com(),'w') as f:
-    f.write(resphead)
-    f.write(resptail)
-respname.rung09a2()
-respname.isover()
-respname.getresp()
 
 print('Clean directory: ')
 print(clean)
@@ -164,7 +219,7 @@ os.system(clean)
 
 print('Format CHK file with formchk: ')
 os.system('formchk this.chk this.fchk\n\n')
-
+# From fchk read Charge, Multiplicity, Coordinates
 xyzlist=[]
 atomlist=['0']
 print('Read fchk...')
@@ -192,6 +247,7 @@ with open('this.fchk','r') as f:
                 for x in string.split():
                     xyzlist.append(x.strip(' '))
             break
+
 xyzlist=[float(x) for x in xyzlist]
 atomlist=[int(x) for x in atomlist]
 
@@ -201,24 +257,30 @@ for i in range(0,len(xyzlist),3):
     xyz.append(xyzlist[i:i+3])
 
 for i in range(1,int(natoms)+1):
-     addatom(atomlist[i],xyz[i])
-with open(respname.ac(),'r') as f:
-    string=f.readline()
-    string=f.readline()
-    for i in range(1,int(natoms)+1):
+     addatom(atomlist[i],xyz[i])   # Add Atoms
+#Read ac file to get Charge&Atomtype
+if startfrom<5:
+    with open(respname.ac(),'r') as f:
         string=f.readline()
-        ac=string.split()
-        at[i].atomtype=ac[len(ac)-1]
-        at[i].charge=ac[len(ac)-2]
+        string=f.readline()
+        for i in range(1,int(natoms)+1):
+            string=f.readline()
+            ac=string.split()
+            at[i].atomtype=ac[len(ac)-1]
+            at[i].charge=ac[len(ac)-2]
+if stopafter=='3':
+    print('User request stop after readac')
+    quit()
+# Build MM Coordinates
 charge=charge.strip('\n')
 spin=spin.strip('\n')
-
 mmxyz=charge+' '+spin+'\n'
 for i in range(1,int(natoms)+1):
     mmxyz=mmxyz+at[i].elementname+'-'+at[i].atomtype+'-'+at[i].charge+'   '+f2s(at[i].x)+'   '+f2s(at[i].y)+'   '+f2s(at[i].z)+'\n'
 
 mmxyz=mmxyz+'\n'
 print('...done\n\nRead internal coordinates from optlog...')
+# Read internal coordinates
 with open(optname.log(),'r') as f:
     while True:
         string=f.readline()
@@ -255,14 +317,15 @@ mmname=GauFile('mm'+name)
 mmtail=''
 input='natoms='+natoms+'mmfile='+mmname.com()+'\n'+'qmlog='+freqname.log()+'\n'
 input=input+'\n\nLink start\n'
-
+# Build MM functions
 for key,value in dihdfunc.df.items():
     mmtail=mmtail+'AmbTrs '+key+' 0 0 0 0 0.0 XXXXXX 0.0 0.0 1.0\n'
     this=filter(lambda x:x.df.link==key, dihedrals.dl.values())
     this=list(set(this))
+
     for x in this:
         input+=str(x.a.atomid)+'-'+str(x.b.atomid)+'-'+str(x.c.atomid)+'-'+str(x.d.atomid)+'\n'
-    input+='next\n'
+    input+='next  # '+key+'\n'
 for key,value in anglefunc.af.items():
     this=filter(lambda x:x.af.link==key, angles.al.values())
     this=list(set(this))
@@ -270,7 +333,7 @@ for key,value in anglefunc.af.items():
     for x in this:
         total+=x.angle()
         input+=str(x.a.atomid)+'-'+str(x.b.atomid)+'-'+str(x.c.atomid)+'\n'
-    input+='next\n'
+    input+='next  # '+key+'\n'
     total=total/len(this)
     total="{:.4f}".format(total)
     mmtail=mmtail+'HrmBnd1 '+key+' XXXXXX '+total+'\n'
@@ -281,7 +344,7 @@ for key,value in bondfunc.bf.items():
     for x in this:
         total+=x.length()
         input+=str(x.a.atomid)+'-'+str(x.b.atomid)+'\n'
-    input+='next\n'
+    input+='next  # '+key+'\n'
     total=total/len(this)
     total="{:.5f}".format(total)
     mmtail=mmtail+'HrmStr1 '+key+' XXXXXX '+total+'\n'
@@ -293,16 +356,17 @@ mmtail=mmtail+'Nonbon 3 1 0 0 0.0 0.0 0.5 0.0 0.0 -1.2\n'
 radii={}
 welldepth={}
 with open(pwd+'vdw.dat','r') as f:
-    while True:
-        string=f.readline()
-        if string.find('MOD4')>=0:
-            string=f.readline()
-            while string.find('END')<0:
-                item=string.split()
-                radii.update({item[0].strip(' '):item[1].strip(' ')})
-                welldepth.update({item[0].strip(' '):item[2].strip(' ')})
-                string=f.readline()
-            break
+    for string in f.readlines():
+        item=string.split()
+        radii.update({item[0].strip(' '):item[1].strip(' ')})
+        welldepth.update({item[0].strip(' '):item[2].strip(' ')})
+if vdwfile!='':
+    print('Read user provided vdW parameters from',vdwfile)
+    with open(vdwfile,'r') as f:
+        for string in f.readlines():
+            item=string.split()
+            radii.update({item[0].strip(' '):item[1].strip(' ')})
+            welldepth.update({item[0].strip(' '):item[2].strip(' ')})
 item=[]
 for i in range(1,int(natoms)+1):
     item.append(at[i].atomtype)
