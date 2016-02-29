@@ -12,6 +12,8 @@
   hw          0.0000  0.0000             OPLS Jorgensen, JACS,110,(1988),1657
   hx          1.1000  0.0157             Veenstra et al JCC,8,(1992),963
   o           1.6612  0.2100             OPLS
+  OD          1.6612  0.2100             alias for o
+  OU          1.6612  0.2100             alias for o
   oh          1.7210  0.2104             OPLS 
   os          1.6837  0.1700             OPLS ether
   ow          1.7683  0.1520             TIP3P water model
@@ -69,7 +71,7 @@
   cl          1.948   0.265              Fox, JPCB,102,8070,(98),flex.mdl CHCl3
   br          2.02    0.420              Junmei, 2010
   i           2.15    0.50               Junmei, 2010
-  Cu          1.409   0.00063064         IOD Cu2+: Li,PF; Merz,Jr; JCTC2013 DOI:10.1021/ct400146w
+  Cu          1.409   0.01721000         IOD Cu2+: Li,PF; Merz,Jr; JCTC2013 DOI:10.1021/ct400146w
   Zn          1.395   0.01491700         IOD Zn2+: Li,PF; Merz,Jr; JCTC2013 DOI:10.1021/ct400146w
   Al          1.297   0.00471279         Al3+ For TIP3P/IOD: Li,PF; Merz,Jr; JPCB DOI:10.1021/jp505875v Table3
   H           0.6000  0.0157            !Ferguson base pair geom.
