@@ -3,11 +3,11 @@
  #################################################################
  # Tsubasa -- Get ready for Hessian Fitting Parameterization
  # Automated Optimization, Freq&Hessian, RESP Charge Calculation
- # V0.1 Ruixing 2-Feb-2016
+ # First version by Ruixing at 2-Feb-2016
  #################################################################
 from __future__ import print_function
 from geomdef import *
-from head import *
+from readfiles import *
 import sys,os,time
 
 
@@ -18,11 +18,14 @@ if len(sys.argv)==1:
 string=sys.argv[1]
 startfrom=0
 stopafter=0
-print('Read config from '+string+'\n')
-name=string.split('.')[0]
-string=string.split('.')[1]
-if string != 'cfg':
-    print('Config must be .cfg')
+if string.find('.')>=0:
+    name=string.split('.')[0]
+    string=string.split('.')[1]
+else:
+    name=string
+print('Read config from '+name+'.cfg\n')
+if not os.path.isfile(name+'.cfg'):
+    print(name+'.cfg does not exist! ')
     quit()
 vdwfile=''
 
@@ -184,7 +187,7 @@ if startfrom<1:
 
     optname.rung09()
     optname.isover()
-    os.system('cp this.chk opt'+optname.chk)
+    os.system('cp this.chk '+optname.chk)
     if stopafter==1:
         print('User request stop after optimization')
         quit()
@@ -287,24 +290,40 @@ for value in angles.list.values():
 for value in dihedrals.list.values():
     dihdfunc(value)
 
+
+
+def sortdihd(item):
+    string=item.split()[1]+'-'+item.split()[2]
+    return string
+sorteddihd=sorted(dihdfunc.list.keys(),key=sortdihd)
+def sortangle(item):
+    string=item.split()[1]+'-'+item.split()[0]
+    return string
+sortedangle=sorted(anglefunc.list.keys(),key=sortangle)
+def sortbond(item):
+    string=item.split()[0]
+    return string
+sortedbond=sorted(bondfunc.list.keys(),key=sortbond)
+
 #Build input file and MMtail(functions)
 mmname=GauFile('mm'+name)
 mmtail=''
 input='natoms='+str(fchk.natoms)+'\nmmfile='+mmname.com+'\n'+'qmlog='+freqname.log+'\n'
 input=input+'\n\nLink start\n'
 # dihedral is assigned n=2 ,phase=180 and Npaths=1 temporarily
-for key,value in dihdfunc.list.items():
+
+for key in sorteddihd:
     # key is dihdfunc, value is dihdobj
     mmtail=mmtail+'AmbTrs '+key+' 0 180 0 0 0.0 XXXXXX 0.0 0.0 1.0\n'
     # For each dihdfunc, look up for x in dihedral.list.obj to find out whose x.func match this key.
+    # 'this' will be the dihedral links.
     this=filter(lambda x:x.func.link==key, dihedrals.list.values())
     this=list(set(this))
-
     for x in this:
         input+=str(x.a.atomid)+'-'+str(x.b.atomid)+'-'+str(x.c.atomid)+'-'+str(x.d.atomid)+'\n'
     input+='next  # '+key+'\n'
 
-for key,value in anglefunc.list.items():
+for key in sortedangle:
     this=filter(lambda x:x.func.link==key, angles.list.values())
     this=list(set(this))
     total=0
@@ -315,7 +334,7 @@ for key,value in anglefunc.list.items():
     total=total/len(this)
     total="{:.4f}".format(total)
     mmtail=mmtail+'HrmBnd1 '+key+' XXXXXX '+total+'\n'
-for key,value in bondfunc.list.items():
+for key in sortedbond:
     this=filter(lambda x:x.func.link==key, bonds.list.values())
     this=list(set(this))
     total=0
@@ -376,6 +395,6 @@ with open(mmname.com,'w') as f:
 print('...done\n\nEND')
 os.system('mkdir tsubasa')
 os.system('mv * tsubasa')
-os.system('mv tsubasa/mm* .')
-os.system('mv tsubasa/freq*.log .')
-os.system('mv tsubasa/input.inp .')
+os.system('cp tsubasa/mm* .')
+os.system('cp tsubasa/freq*.log .')
+os.system('cp tsubasa/input.inp .')
