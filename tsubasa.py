@@ -1,5 +1,4 @@
-#!/home/rwang013/apps/python/bin/python3
-
+#!/usr/bin/env python
  #################################################################
  # Tsubasa -- Get ready for Hessian Fitting Parameterization
  # Automated Optimization, Freq&Hessian, RESP Charge Calculation
