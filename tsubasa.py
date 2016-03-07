@@ -81,13 +81,13 @@ with open(name+'.cfg','r') as config:
     for line in config.readlines():
        # Read commands
         if line.find('$g09rt')>=0:
-            g09rt=line[line.find('=''')+2:len(line)-2]
+            gauFile.g09rt=line[line.find('=''')+2:len(line)-2]
 
         if line.find('$g09a2rt')>=0:
-            g09a2rt=line[line.find('=''')+2:len(line)-2]
+            gauFile.g09a2rt=line[line.find('=''')+2:len(line)-2]
 
         if line.find('$antechamber')>=0:
-            antechamber=line[line.find('=''')+2:len(line)-2]
+            gauFile.antechamber=line[line.find('=''')+2:len(line)-2]
 
         if line.find('$clean')>=0:
             clean=line[line.find('=''')+2:len(line)-2]
@@ -141,40 +141,10 @@ with open(name+'.cfg','r') as config:
             mmhead=mmhead+line
         if line.find('++mmhead++')>=0:
             ifwrite=6
-class GauFile(object):
-    def __init__(self,name):
-        self.name=name
-        self.com=name+'.com'
-        self.log=name+'.log'
-        self.chk=name+'.chk'
-        self.ac=name+'.ac'
-    def rung09(self):
-        print('Runing g09 with: '+g09rt+' '+self.com)
-        os.system(g09rt+' '+self.com)
-    def rung09a2(self):
-        print('Runing g09a2 with: '+g09a2rt+' '+self.com)
-        os.system(g09a2rt+' '+self.com)
-    def isover(self):
-        print('Waiting for g09...')
-        while True:
-            time.sleep(3)
-            output=os.popen('tail -5 '+self.log)
-            output=output.read()
 
-            if output.find('Normal termination')>=0:
-                print('..done\n\n')
-                break
-            if output.find('Error termination')>=0:
-                print('Error termination in '+self.com)
-                quit()
-    def getresp(self):
-        print('Runing antechamber: \n')
-        os.system(antechamber+' -i '+self.log+' -fi gout -o '+self.ac+' -fo ac')
-
-
-optname=GauFile('opt'+name)
-freqname=GauFile('freq'+name)
-respname=GauFile('resp'+name)
+optname=gauFile('opt'+name)
+freqname=gauFile('freq'+name)
+respname=gauFile('resp'+name)
 
 # Run Calculations
 if startfrom<1:
@@ -186,7 +156,8 @@ if startfrom<1:
             f.write(opttail)
 
     optname.rung09()
-    optname.isover()
+    if not optname.isover():
+        quit()
     os.system('cp this.chk '+optname.chk)
     if stopafter==1:
         print('User request stop after optimization')
@@ -196,7 +167,8 @@ if startfrom<2:
         freqhead='%chk=this.chk\n'+freqhead
         f.write(freqhead)
     freqname.rung09()
-    freqname.isover()
+    if not freqname.isover():
+        quit()
     os.system('cp this.chk '+freqname.chk)
     if stopafter==2:
         print('User request stop after frequency')
@@ -207,7 +179,8 @@ if startfrom<3:
         f.write(resphead)
         f.write(resptail)
     respname.rung09a2()
-    respname.isover()
+    if not respname.isover():
+        quit()
     os.system('cp this.chk '+respname.chk)
     if stopafter==3:
         print('User request stop after resp')
@@ -231,19 +204,16 @@ os.system('formchk this.chk this.fchk')
 #Read fchk : coordinates, charge, spin, natoms
 fchk=readfchk('this.fchk')
 print('...done\n\nBuild mmxyz...')
+thisgeom=geometry()
+xyz=['']
+fchk.assignatom(thisgeom)   # Add Atoms
 
-for i in range(0,len(fchk.xyzlist),3):
-    xyz.append(fchk.xyzlist[i:i+3])
-
-for i in range(1,fchk.natoms+1):
-     addatom(fchk.atomlist[i],xyz[i])   # Add Atoms
 #Read ac file to get Charge&Atomtype and assign to atoms
 if startfrom<5:
     ac=readac(respname.ac)
-    for i in range(1,fchk.natoms+1):
-        at[i].atomtype=ac.atomtype[i]
-        at[i].charge=ac.charge[i]
-if stopafter=='3':
+    ac.assigntype(thisgeom)
+    ac.assigncharge(thisgeom)
+if stopafter==3:
     print('User request stop after readac')
     quit()
 
@@ -253,7 +223,7 @@ def f2s(fl):
     return "{: .12f}".format(fl)
 
 for i in range(1,fchk.natoms+1):
-    mmxyz=mmxyz+at[i].elementname+'-'+at[i].atomtype+'-'+at[i].charge+'   '+f2s(at[i].x)+'   '+f2s(at[i].y)+'   '+f2s(at[i].z)+'\n'
+    mmxyz=mmxyz+thisgeom.atoms[i].elementname+'-'+thisgeom.atoms[i].atomtype+'-'+thisgeom.atoms[i].charge+'   '+f2s(thisgeom.atoms[i].x)+'   '+f2s(thisgeom.atoms[i].y)+'   '+f2s(thisgeom.atoms[i].z)+'\n'
 
 mmxyz=mmxyz+'\n'
 
@@ -275,56 +245,48 @@ with open(optname.log,'r') as f:
                 content=content.split(',')
                 content=[int(x) for x in content]
                 if len(content)==2:
-                    addbond(content[0],content[1])
+                    thisgeom.addbond(content[0],content[1])
                 elif len(content)==3:
-                    addangle(content[0],content[1],content[2])
+                    thisgeom.addangle(content[0],content[1],content[2])
                 elif len(content)==4:
-                    adddihd(content[0],content[1],content[2],content[3])
+                    thisgeom.adddihd(content[0],content[1],content[2],content[3])
             break
 print('...done\n\nBuild mmtail...')
 
-for value in bonds.list.values():
-    bondfunc(value)
-for value in angles.list.values():
-    anglefunc(value)
-for value in dihedrals.list.values():
-    dihdfunc(value)
+for value in thisgeom.bonds.values():
+    thisgeom.addbondfunc(value)
+for value in thisgeom.angles.values():
+    thisgeom.addanglefunc(value)
+for value in thisgeom.dihedrals.values():
+    thisgeom.adddihdfunc(value)
 
 
 
-def sortdihd(item):
-    string=item.split()[1]+'-'+item.split()[2]
-    return string
-sorteddihd=sorted(dihdfunc.list.keys(),key=sortdihd)
-def sortangle(item):
-    string=item.split()[1]+'-'+item.split()[0]
-    return string
-sortedangle=sorted(anglefunc.list.keys(),key=sortangle)
-def sortbond(item):
-    string=item.split()[0]
-    return string
-sortedbond=sorted(bondfunc.list.keys(),key=sortbond)
+
+sorteddihd=sorted(thisgeom.dihdfunc.keys(),key=lambda item: item.split()[1]+'-'+item.split()[2])
+sortedangle=sorted(thisgeom.anglefunc.keys(),key=lambda item: item.split()[1]+'-'+item.split()[0])
+sortedbond=sorted(thisgeom.bondfunc.keys(),key=lambda item: item.split()[0])
 
 #Build input file and MMtail(functions)
-mmname=GauFile('mm'+name)
+mmname=gauFile('mm'+name)
 mmtail=''
-input='natoms='+str(fchk.natoms)+'\nmmfile='+mmname.com+'\n'+'qmlog='+freqname.log+'\n'
+input='natoms='+str(fchk.natoms)+'\nmmfile='+mmname.com+'\n'+'qmfchk='+freqname.fchk+'\n'+'qmlog='+freqname.log+'\n'
 input=input+'\n\nLink start\n'
 # dihedral is assigned n=2 ,phase=180 and Npaths=1 temporarily
 
 for key in sorteddihd:
-    # key is dihdfunc, value is dihdobj
+    # key is sorted dihdfunc
     mmtail=mmtail+'AmbTrs '+key+' 0 180 0 0 0.0 XXXXXX 0.0 0.0 1.0\n'
-    # For each dihdfunc, look up for x in dihedral.list.obj to find out whose x.func match this key.
-    # 'this' will be the dihedral links.
-    this=filter(lambda x:x.func.link==key, dihedrals.list.values())
+    # For each key of dihdfunc.key, filter x in dihedral.list.values(obj) to find out whose x.func(obj) match this key
+    # 'this' will be the dihd obj who satisfy the condition aforementioned
+    this=filter(lambda x:x.func.link==key, thisgeom.dihedrals.values())
     this=list(set(this))
     for x in this:
         input+=str(x.a.atomid)+'-'+str(x.b.atomid)+'-'+str(x.c.atomid)+'-'+str(x.d.atomid)+'\n'
     input+='next  # '+key+'\n'
 
 for key in sortedangle:
-    this=filter(lambda x:x.func.link==key, angles.list.values())
+    this=filter(lambda x:x.func.link==key, thisgeom.angles.values())
     this=list(set(this))
     total=0
     for x in this:
@@ -335,7 +297,7 @@ for key in sortedangle:
     total="{:.4f}".format(total)
     mmtail=mmtail+'HrmBnd1 '+key+' XXXXXX '+total+'\n'
 for key in sortedbond:
-    this=filter(lambda x:x.func.link==key, bonds.list.values())
+    this=filter(lambda x:x.func.link==key, thisgeom.bonds.values())
     this=list(set(this))
     total=0
     for x in this:
@@ -369,7 +331,7 @@ if vdwfile!='':
 item=[]
 #find existing atomtypes
 for i in range(1,fchk.natoms+1):
-    item.append(at[i].atomtype)
+    item.append(thisgeom.atoms[i].atomtype)
 item=list(set(item))
 for i in range(0,len(item)):
     mmtail+='VDW '+item[i]+'  '+radii[item[i]]+'  '+welldepth[item[i]]+'\n'
@@ -396,5 +358,7 @@ print('...done\n\nEND')
 os.system('mkdir tsubasa')
 os.system('mv * tsubasa')
 os.system('cp tsubasa/mm* .')
-os.system('cp tsubasa/freq*.log .')
+os.system('formchk tsubasa/'+freqname.chk+' '+freqname.fchk)
+os.system('cp tsubasa/'+freqname.fchk+' .')
+os.system('cp tsubasa/'+freqname.log+' .')
 os.system('cp tsubasa/input.inp .')
