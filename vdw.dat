@@ -20,6 +20,13 @@
   D4          1.6612  0.2100             alias for o
   D5          1.6612  0.2100             alias for o
   D6          1.6612  0.2100             alias for o
+  D7          1.6612  0.2100             alias for o
+  D8          1.6612  0.2100             alias for o
+  D9          1.6612  0.2100             alias for o
+  DA          1.6612  0.2100             alias for o
+  DB          1.6612  0.2100             alias for o
+  DC          1.6612  0.2100             alias for o
+  DD          1.6612  0.2100             alias for o
   oh          1.7210  0.2104             OPLS 
   os          1.6837  0.1700             OPLS ether
   ow          1.7683  0.1520             TIP3P water model
@@ -28,6 +35,9 @@
   c2          1.9080  0.0860             sp2 atom in the middle of C=CD-CD=C
   c3          1.9080  0.1094             OPLS
   ca          1.9080  0.0860             OPLS
+  CB          1.9080  0.0860             OPLS
+  CC          1.9080  0.0860             OPLS
+  CD          1.9080  0.0860             OPLS
   cc          1.9080  0.0860             OPLS
   cd          1.9080  0.0860             OPLS
   ce          1.9080  0.0860             OPLS
@@ -120,4 +130,12 @@
   Si          2.1350  0.3100             Added by HH (temporary) for Vibert et al Si Chem. Sci., 2014, 5, 4716
   Cu          1.409   0.01721000         IOD Cu2+: Li,PF; Merz,Jr; JCTC2013 DOI:10.1021/ct400146w
   Zn          1.395   0.01491700         IOD Zn2+: Li,PF; Merz,Jr; JCTC2013 DOI:10.1021/ct400146w
+  Zn1          1.395   0.01491700         IOD Zn2+: Li,PF; Merz,Jr; JCTC2013 DOI:10.1021/ct400146w
+  Zn2         1.395   0.01491700         IOD Zn2+: Li,PF; Merz,Jr; JCTC2013 DOI:10.1021/ct400146w
+  Zn3          1.395   0.01491700         IOD Zn2+: Li,PF; Merz,Jr; JCTC2013 DOI:10.1021/ct400146w
+  Zn4          1.395   0.01491700         IOD Zn2+: Li,PF; Merz,Jr; JCTC2013 DOI:10.1021/ct400146w
   Al          1.297   0.00471279         Al3+ For TIP3P/IOD: Li,PF; Merz,Jr; JPCB DOI:10.1021/jp505875v Table3
+  Al1          1.297   0.00471279         Al3+ For TIP3P/IOD: Li,PF; Merz,Jr; JPCB DOI:10.1021/jp505875v Table3
+  Al2          1.297   0.00471279         Al3+ For TIP3P/IOD: Li,PF; Merz,Jr; JPCB DOI:10.1021/jp505875v Table3
+  Al3          1.297   0.00471279         Al3+ For TIP3P/IOD: Li,PF; Merz,Jr; JPCB DOI:10.1021/jp505875v Table3
+  Al4          1.297   0.00471279         Al3+ For TIP3P/IOD: Li,PF; Merz,Jr; JPCB DOI:10.1021/jp505875v Table3
