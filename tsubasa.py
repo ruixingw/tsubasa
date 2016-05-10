@@ -1,16 +1,66 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
  #################################################################
  # Tsubasa -- Get ready for Hessian Fitting Parameterization
  # Automated Optimization, Freq&Hessian, RESP Charge Calculation
  # First version by Ruixing at 2-Feb-2016
  #################################################################
 from __future__ import print_function
-from geomdef import *
-from readfiles import *
-import sys,os,time
+import rxcclib.molecules as rxmol
+import rxcclib.chemfiles as rxccfile
+import sys,os,time,io,argparse,logging,pdb,shutil
+
+################Parse input
+parser=argparse.ArgumentParser()
+parser.add_argument('-i',dest='inputgeom',default=False,help='Inputfile including molecular specs and connectivity')
+parser.add_argument('-c',dest='configfile',default=False,help='Tsubasa config file.')
+parser.add_argument('--readvdw',dest='externalvdwfile',default=False,help='If provided, read external vdW parameters from file',nargs=1)
+args=parser.parse_args()
+inputgeom=args.inputgeom
+cfgfile=args.configfile
+externalvdw=args.externalvdwfile
+if externalvdw:
+    externalvdw=externalvdw[0]
+##############
+############## copy config file to current path if no argument is specified
+pwd=os.path.split(os.path.realpath(__file__))[0]
+if inputgeom==False and cfgfile==False and externalvdw==False:
+    gauname=False
+    cfgname=False
+    vdwname=False
+    for filename in os.listdir():
+        if filename.find('.gau')>=0:
+            gauname=filename[0:filename.find('.gau')]
+        if filename.find('.cfg')>=0:
+            cfgname=filename[0:filename.find('.cfg')]
+        if filename.find('vdw')>=0:
+            externalvdw=filename
+    if gauname!=False and cfgname!=False and cfgname!=gauname:
+        logging.critical('Inconsistent name of inputgeom and config file. ')
+        raise Exception
+    elif gauname!=False and cfgname==False:
+        shutil.copyfile(os.path.join(pwd,'config.cfg'),os.path.join(os.getcwd(),gauname+'.cfg'))
+        logging.warning('Config file not found and it is copied to current directory. Program will now quit.')
+        quit()
+    elif gauname!=False and cfgname!=False and cfgname==gauname:
+        inputgeom=gauname
+        cfgfile=cfgname
+    else:
+        logging.critical('No inputgeom file found.')
+        raise Exception
+###########################
 
 
-pwd=sys.argv[0][:sys.argv[0].find('tsubasa.py')]
+#### Logging module setting. Print INFO on screen and DEBUG INFO in file###########
+logging.basicConfig(filename=inputgeom+'.tsubasa',level=logging.DEBUG,filemode='w')
+console=logging.StreamHandler()
+console.setLevel(logging.INFO)
+formatter=logging.Formatter('%(levelname)-8s %(message)s')
+console.setFormatter(formatter)
+logging.getLogger('').addHandler(console)
+###################################################################################
+
+
+quit()
 if len(sys.argv)==1:
     os.system('cp '+pwd+'config.cfg .')
     quit()
@@ -80,13 +130,13 @@ with open(name+'.cfg','r') as config:
     for line in config.readlines():
        # Read commands
         if line.find('$g09rt')>=0:
-            gauCOM.g09rt=line[line.find('=''')+2:len(line)-2]
+            rxccfile.gauCOM.g09rt=line[line.find('=''')+2:len(line)-2]
 
         if line.find('$g09a2rt')>=0:
-            gauCOM.g09a2rt=line[line.find('=''')+2:len(line)-2]
+            rxccfile.gauCOM.g09a2rt=line[line.find('=''')+2:len(line)-2]
 
         if line.find('$antechamber')>=0:
-            amberAC.antechamber=line[line.find('=''')+2:len(line)-2]
+            rxccfile.amberAC.antechamber=line[line.find('=''')+2:len(line)-2]
 
         if line.find('$clean')>=0:
             clean=line[line.find('=''')+2:len(line)-2]
@@ -141,51 +191,51 @@ with open(name+'.cfg','r') as config:
         if line.find('++mmhead++')>=0:
             ifwrite=6
 
-optname=File('opt'+name)
-freqname=File('freq'+name)
-respname=File('resp'+name)
+optname=rxccfile.File('opt'+name)
+freqname=rxccfile.File('freq'+name)
+respname=rxccfile.File('resp'+name)
 
 # Run Calculations
 if startfrom<1:
     with open(name+'.gau','r') as initxyz:
-        with open(optname.comname(),'w') as f:
+        with open(optname.comname,'w') as f:
             opthead='%chk=this.chk\n'+opthead
             f.write(opthead)
             f.write(initxyz.read())
             f.write(opttail)
 
-    optname.rung09()
-    if not optname.isover():
+    optname.com.rung09()
+    if not optname.com.isover():
         quit()
-    os.system('cp this.chk '+optname.chk)
+    os.system('cp this.chk '+optname.chkname)
     if stopafter==1:
         print('User request stop after optimization')
         quit()
 if startfrom<2:
-    with open(freqname.comname(),'w') as f:
+    with open(freqname.comname,'w') as f:
         freqhead='%chk=this.chk\n'+freqhead
         f.write(freqhead)
-    freqname.rung09()
-    if not freqname.isover():
+    freqname.com.rung09()
+    if not freqname.com.isover():
         quit()
-    os.system('cp this.chk '+freqname.chkname())
+    os.system('cp this.chk '+freqname.chkname)
     if stopafter==2:
         print('User request stop after frequency')
         quit()
 if startfrom<3:
-    with open(respname.comname(),'w') as f:
+    with open(respname.comname,'w') as f:
         resphead='%chk=this.chk\n'+resphead
         f.write(resphead)
         f.write(resptail)
-    respname.rung09a2()
-    if not respname.isover():
+    respname.com.rung09a2()
+    if not respname.com.isover():
         quit()
-    os.system('cp this.chk '+respname.chkname())
+    os.system('cp this.chk '+respname.chkname)
     if stopafter==3:
         print('User request stop after resp')
         quit()
 if startfrom<4:
-    respname.antecham()
+    respname.log.runantecham()
     if stopafter==4:
         print('User request stop after antechamber')
         quit()
@@ -201,35 +251,35 @@ print('Format CHK file by formchk: ')
 os.system('formchk this.chk this.fchk')
 
 #Read fchk : coordinates, charge, spin, natoms
-fchk=File('this')
-fchk.readfchk()
+fchk=rxccfile.File('this')
+fchk.fchk.read()
 print('...done\n\nBuild mmxyz...')
-thisgeom=geometry()
+thisgeom=rxmol.Molecule('this')
 xyz=['']
-fchk.assignatomtogeom(thisgeom)   # Add Atoms
+thisgeom.readfromxyz(io.StringIO(fchk.fchk.xyz))
 
 #Read ac file to get Charge&Atomtype and assign to atoms
 if startfrom<5:
-    respname.readac()
-    respname.assigntypetogeom(thisgeom)
-    respname.assignchargetogeom(thisgeom)
+    respname.ac.read()
+    thisgeom.readchargefromlist(respname.ac.atomchargelist)
+    thisgeom.readtypefromlist(respname.ac.atomtypelist)
 if stopafter==3:
     print('User request stop after readac')
     quit()
 
-# Build MM File
-mmxyz=fchk.getcharge()+' '+fchk.getspin()+'\n'
+# Build MM rxccfile.File
+mmxyz=str(fchk.totalcharge)+' '+str(fchk.multiplicity)+'\n'
 def f2s(fl):
     return "{: .12f}".format(fl)
 
-for i in range(1,fchk.getnatoms()+1):
-    mmxyz=mmxyz+thisgeom.atoms[i].elementname+'-'+thisgeom.atoms[i].atomtype+'-'+thisgeom.atoms[i].charge+'   '+f2s(thisgeom.atoms[i].x)+'   '+f2s(thisgeom.atoms[i].y)+'   '+f2s(thisgeom.atoms[i].z)+'\n'
+for i in range(1,fchk.natoms+1):
+    mmxyz=mmxyz+thisgeom[i].atomsym+'-'+thisgeom[i].atomtype+'-'+thisgeom[i].atomcharge+'   '+join(thisgeom[i].coords)+'\n'
 
 mmxyz=mmxyz+'\n'
 
 print('...done\n\nRead internal coordinates from optlog...')
 # Read internal coordinates, add bond, angle, dihedral and define MM functions
-with open(optname.logname(),'r') as f:
+with open(optname.logname,'r') as f:
     while True:
         string=f.readline()
         if string.find('Initial Parameters')>=0:
@@ -268,9 +318,9 @@ sortedangle=sorted(thisgeom.anglefunc.keys(),key=lambda item: item.split()[1]+'-
 sortedbond=sorted(thisgeom.bondfunc.keys(),key=lambda item: item.split()[0])
 
 #Build input file and MMtail(functions)
-mmname=File('mm'+name)
+mmname=rxccfile.File('mm'+name)
 mmtail=''
-input='natoms='+str(fchk.getnatoms())+'\nmmfile='+mmname.comname()+'\n'+'qmfchk='+freqname.fchkname()+'\n'+'qmlog='+freqname.logname()+'\n'
+input='natoms='+str(fchk.natoms)+'\nmmfile='+mmname.comname+'\n'+'qmfchk='+freqname.fchkname+'\n'+'qmlog='+freqname.logname+'\n'
 input=input+'\n\nLink start\n'
 # dihedral is assigned n=2 ,phase=180 and Npaths=1 temporarily
 
@@ -330,7 +380,7 @@ if vdwfile!='':
             welldepth.update({item[0].strip(' '):item[2].strip(' ')})
 item=[]
 #find existing atomtypes
-for i in range(1,fchk.getnatoms()+1):
+for i in range(1,fchk.natoms+1):
     item.append(thisgeom.atoms[i].atomtype)
 item=list(set(item))
 for i in range(0,len(item)):
@@ -348,7 +398,7 @@ with open(name+'.gau','r') as f:
             connectivity+=line
     connectivity+='\n'
 
-with open(mmname.comname(),'w') as f:
+with open(mmname.comname,'w') as f:
     f.write(mmhead)
     f.write(mmxyz)
     f.write(connectivity)
@@ -358,7 +408,7 @@ print('...done\n\nEND')
 os.system('mkdir tsubasa')
 os.system('mv * tsubasa')
 os.system('cp tsubasa/mm* .')
-os.system('formchk tsubasa/'+freqname.chkname()+' '+freqname.fchkname())
-os.system('cp tsubasa/'+freqname.fchkname()+' .')
-os.system('cp tsubasa/'+freqname.logname()+' .')
+os.system('formchk tsubasa/'+freqname.chkname+' '+freqname.fchkname)
+os.system('cp tsubasa/'+freqname.fchkname+' .')
+os.system('cp tsubasa/'+freqname.logname+' .')
 os.system('cp tsubasa/input.inp .')
