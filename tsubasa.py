@@ -7,7 +7,7 @@
 from __future__ import print_function
 import rxcclib.molecules as rxmol
 import rxcclib.chemfiles as rxccfile
-import sys,os,time,io,argparse,logging,pdb,shutil
+import os,argparse,logging,shutil
 
 ################Parse input
 parser=argparse.ArgumentParser()
