@@ -2,10 +2,10 @@
 
 
 ## Overview
-
+### What it does?
 *Tsubasa* is a program to prepare input files for Hessian Fitting parameterization.
-Hessian Fitting scheme requires QM optimized geometry, Hessian, RESP charge, and MM input files. *Tsubasa* program automates these works and enables one start parameterization quickly.
-
+### Why it does?
+Hessian Fitting scheme requires QM optimized geometry, Hessian, RESP charge, and a MM input file. Preparing MM input file for Hessian Fitting is a very inconvenient work. It includes geometry, atom type, atomic charge and especially, MM functions. MM functions are all bond types, angle types and dihedral types. Manually identifying MM functions is hard for large molecule, and the equilibrium values of harmonic terms (bond stretching and angle bending) are averaged from many bond distances or angles, while this procedure is also complicated. *Tsubasa* program automatically do all calculations and format every thing done into a MM input file, which is eventually used by Hessian Fitting programs.
 
 ## Dependencies
 Tsubasa requires the following packages.
