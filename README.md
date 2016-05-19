@@ -126,7 +126,7 @@ VDW ha  1.4590  0.0150
 
 ```
 
-The dihedrals are separately idenfied and they are assigned n=2, phase=180 degree and NPaths=1.0. One must manually edit dihedral MM functions according to his own need.
+5) The dihedrals are separately idenfied and they are assigned n=2, phase=180 degree and NPaths=1.0. One must manually edit dihedral MM functions according to his own need.
 ```
 AmbTrs * ca ca * 0 180 0 0 0.0 XXXXXX 0.0 0.0 4.0
 ```
