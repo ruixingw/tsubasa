@@ -19,7 +19,7 @@ Tsubasa requires the following packages.
 
 Here an example of benzene (C<sub>6</sub>H<sub>6</sub>) is shown.
 
-1. Input file including geometry and connectivity.
+1) Input file including geometry and connectivity.
 The input file can be easily prepared by GaussView and deleting some lines. The format is as followed.
 
 ```
@@ -54,8 +54,8 @@ H     -1.982726171199      1.295519560979     -0.001284573853
 
 Note that there is a blank line at the end. Save this file with a ".gau" extension, for example, "ben.gau".
 
-2. Run *Tsubasa* without arguments, i.e., just run "tsubasa.py". A config file will be copied to the current folder and named as "ben.cfg".
-3. Modify the config file according to your own needs. For details, please see the manual. In this example, we only modify the "opttail" part to set the basis set.
+2) Run "tsubasa.py". A config file will be copied to the current folder and named as "ben.cfg".
+3) Modify the config file according to your own needs. For details, please see the manual. In this example, we only modify the "opttail" part to set the basis set.
 ```
 ++opttail++
 C H 0
