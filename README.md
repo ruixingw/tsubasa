@@ -89,7 +89,7 @@ The content of **mmben.com** is as follow.
 %mem=12gb
 #p amber=softonly geom=connectivity nosymm
 iop(4/33=3,7/33=1)
-freq=noraman
+freq
 
 MM-name
 
