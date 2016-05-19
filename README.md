@@ -7,13 +7,19 @@
 ### Why is it?
 Hessian Fitting scheme requires QM optimized geometry, Hessian, RESP charge, and a MM input file. Preparing MM input file for Hessian Fitting is a very complicated work. The major difficulty is identifying MM functions. MM functions are all bond types, angle types and dihedral types. Manually identifying all MM functions without a miss is hard for large molecule. The equilibrium values of harmonic terms (bond stretching and angle bending) are averaged from many bond distances or angles, while this procedure is also complicated for human. *Tsubasa* program automatically do all calculations, identify MM functions and format every thing done into a MM input file, which is eventually used by Hessian Fitting programs.
 
-## Dependencies
+## Installation
+
+### Dependencies
 Tsubasa requires the following packages.
 
 - [Python3](https://www.python.org/) ([Anaconda](https://www.continuum.io/downloads) is strongly recommended)
 - [numpy](http://www.numpy.org/) (Included in Anaconda)
 - [cclib](https://cclib.github.io/) (simply install by ```pip install cclib```)
 - [rxcclib](https://github.com/ruixingw/rxcclib) 
+
+### Get Tsubasa
+1. Clone this repository by ```git clone https://github.com/ruixingw/tsubasa.git```.
+2. Add the ```tsubasa``` directory to your $PATH environment.
 
 ## Quick Start
 
@@ -130,4 +136,7 @@ VDW ha  1.4590  0.0150
 ```
 AmbTrs * ca ca * 0 180 0 0 0.0 XXXXXX 0.0 0.0 4.0
 ```
+
+## Other options
+For other options, please see the Tsubasa Reference Manual.
 
