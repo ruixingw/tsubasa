@@ -17,9 +17,10 @@ Tsubasa requires the following packages.
 
 ## Quick Start
 
-Here an example of benzene (C<sub>6</sub>H<sub>6</sub>) is shown.
+An example of benzene (C<sub>6</sub>H<sub>6</sub>) is shown here.
 
-1) Input file including geometry and connectivity.
+1) Prepare Input file including geometry and connectivity.
+
 The input file can be easily prepared by GaussView and deleting some lines. The format is as followed.
 
 ```
