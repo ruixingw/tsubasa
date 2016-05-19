@@ -133,7 +133,7 @@ VDW ha  1.4590  0.0150
 
 ```
 
-5) The dihedrals are separately idenfied and they are assigned n=2, phase=180 degree and NPaths=1.0. One must manually edit dihedral MM functions according to his own need.
+5) The dihedrals are separately idenfied and they are temporarily assigned n=2, phase=180 degree and NPaths=1.0. Usually, wildcards is used to represent a set of dihedrals, and one must manually edit it.
 ```
 AmbTrs * ca ca * 0 180 0 0 0.0 XXXXXX 0.0 0.0 4.0
 ```
