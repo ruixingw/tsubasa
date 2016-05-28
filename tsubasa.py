@@ -122,7 +122,7 @@ with open(cfgname+'.cfg','r') as config:
             rxccfile.gauCOM.g09a2rt=line[line.find('=''')+2:-2]
 
         if line.find('$antechamber')>=0:
-            rxccfile.amberAC.antechamber=line[line.find('=''')+2:-2]
+            rxccfile.gauLOG.antecommand=line[line.find('=''')+2:-2]
 
         if line.find('$clean')>=0:
             clean=line[line.find('=''')+2:-2]
@@ -376,8 +376,11 @@ for key in sortedangle:
     this=filter(lambda x:x.func.link==key, thisgeom.anglelist.values())
     this=list(set(this))
     total=0
-    for x in this:
+    for num,x in enumerate(this):
         total+=x.anglevalue
+        now=total/(num+1)
+        if abs(x.anglevalue-now) > 3 and total!=0:
+            logging.warning('Angle '+x.repr+' has very different angle value of  {:.4f}'.format(x.anglevalue)+' compared to '+x.func.link+' {:.4f}'.format(now))
         input+=str(x[1].atomnum)+'-'+str(x[2].atomnum)+'-'+str(x[3].atomnum)+'\n'
     input+='next  # '+key+'\n'
     total=total/len(this)
@@ -387,8 +390,11 @@ for key in sortedbond:
     this=filter(lambda x:x.func.link==key, thisgeom.bondlist.values())
     this=list(set(this))
     total=0
-    for x in this:
+    for num,x in enumerate(this):
         total+=x.length
+        now=total/(num+1)
+        if abs(x.length-now) > 0.1 and total!=0:
+            logging.warning('bond '+x.repr+' has very different length of {:.4f}'.format(x.length)+' compared to '+x.func.link+' {:.5f}'.format(now))
         input+=str(x[1].atomnum)+'-'+str(x[2].atomnum)+'\n'
     input+='next  # '+key+'\n'
     total=total/len(this)
