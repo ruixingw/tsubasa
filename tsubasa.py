@@ -1,190 +1,208 @@
 #!/usr/bin/env python3
- #################################################################
- # Tsubasa -- Get ready for Hessian Fitting Parameterization
- # Automated Optimization, Freq&Hessian, RESP Charge Calculation
- # First version by Ruixing at 2-Feb-2016
- #################################################################
+#################################################################
+# Tsubasa -- Get ready for Hessian Fitting Parameterization
+# Automated Optimization, Freq&Hessian, RESP Charge Calculation
+# First version by Ruixing at 2-Feb-2016
+#################################################################
 from __future__ import print_function
 import rxcclib.molecules as rxmol
 import rxcclib.chemfiles as rxccfile
-import os,argparse,logging,shutil
+import os, argparse, logging, shutil
 
 ################Parse input
-parser=argparse.ArgumentParser()
-parser.add_argument('-i',dest='inputgeom',default=False,help='Inputfile including molecular specs and connectivity')
-parser.add_argument('-c',dest='configfile',default=False,help='Tsubasa config file.')
-parser.add_argument('--readvdw',dest='externalvdwfile',default=False,help='If provided, read external vdW parameters from file',nargs=1)
-parser.add_argument('--startfrom',default='opt',choices=['freq','resp','antechamber','readac'],help="Start from a certain step. Choices=['opt','freq','resp','antechamber','readac']")
-parser.add_argument('--stopafter',default='readac',choices=['opt','freq','resp','antechamber'],help="Stop after a certain step. Choices=['freq','resp','antechamber']")
-args=parser.parse_args()
-inputgeom=args.inputgeom
-cfgfile=args.configfile
-externalvdw=args.externalvdwfile
+parser = argparse.ArgumentParser()
+parser.add_argument('-i',
+                    dest='inputgeom',
+                    default=False,
+                    help='Inputfile including molecular specs and connectivity')
+parser.add_argument('-c',
+                    dest='configfile',
+                    default=False,
+                    help='Tsubasa config file.')
+parser.add_argument('--readvdw',
+                    dest='externalvdwfile',
+                    default=False,
+                    help='If provided, read external vdW parameters from file',
+                    nargs=1)
+parser.add_argument(
+    '--startfrom',
+    default='opt',
+    choices=['freq', 'resp', 'antechamber', 'readac'],
+    help="Start from a certain step. Choices=['opt','freq','resp','antechamber','readac']")
+parser.add_argument(
+    '--stopafter',
+    default='readac',
+    choices=['opt', 'freq', 'resp', 'antechamber'],
+    help="Stop after a certain step. Choices=['freq','resp','antechamber']")
+args = parser.parse_args()
+inputgeom = args.inputgeom
+cfgfile = args.configfile
+externalvdw = args.externalvdwfile
 print(externalvdw)
 if externalvdw:
-    externalvdw=externalvdw[0]
+    externalvdw = externalvdw[0]
 
-startfrom=args.startfrom
-if startfrom=='opt':
-    startfrom=0
-elif startfrom=='freq':
-    startfrom=1
+startfrom = args.startfrom
+if startfrom == 'opt':
+    startfrom = 0
+elif startfrom == 'freq':
+    startfrom = 1
     logging.warning('Start from freq')
-elif startfrom=='resp':
-    startfrom=2
+elif startfrom == 'resp':
+    startfrom = 2
     logging.warning('Start from resp')
-elif startfrom=='antechamber':
-    startfrom=3
+elif startfrom == 'antechamber':
+    startfrom = 3
     logging.warning('Start from antechamber')
-elif startfrom=='readac':
-    startfrom=4
+elif startfrom == 'readac':
+    startfrom = 4
     logging.warning('Start from readac')
 
-stopafter=args.stopafter
-if stopafter=='opt':
-    stopafter=1
+stopafter = args.stopafter
+if stopafter == 'opt':
+    stopafter = 1
     logging.warning('stop after opt')
-elif stopafter=='freq':
-    stopafter=2
+elif stopafter == 'freq':
+    stopafter = 2
     logging.warning('stop after freq')
-elif stopafter=='resp':
-    stopafter=3
+elif stopafter == 'resp':
+    stopafter = 3
     logging.warning('stop after resp')
-elif stopafter=='antechamber':
-    stopafter=4
+elif stopafter == 'antechamber':
+    stopafter = 4
     logging.warning('stop after antechamber')
-elif stopafter=='readac':
-    stopafter=5
-
+elif stopafter == 'readac':
+    stopafter = 5
 
 ##############
 ############## copy config file to current path if no argument is specified
-pwd=os.path.split(os.path.realpath(__file__))[0]
-if inputgeom==False and cfgfile==False and externalvdw==False:
-    gauname=False
-    cfgname=False
-    vdwname=False
+pwd = os.path.split(os.path.realpath(__file__))[0]
+if inputgeom == False and cfgfile == False and externalvdw == False:
+    gauname = False
+    cfgname = False
+    vdwname = False
     for filename in os.listdir():
-        if filename.find('.gau')>=0:
-            gauname=filename[0:filename.find('.gau')]
-        if filename.find('.cfg')>=0:
-            cfgname=filename[0:filename.find('.cfg')]
-        if filename.find('vdw')>=0:
-            externalvdw=filename
-    if gauname!=False and cfgname!=False and cfgname!=gauname:
+        if filename.find('.gau') >= 0:
+            gauname = filename[0:filename.find('.gau')]
+        if filename.find('.cfg') >= 0:
+            cfgname = filename[0:filename.find('.cfg')]
+        if filename.find('vdw') >= 0:
+            externalvdw = filename
+    if gauname != False and cfgname != False and cfgname != gauname:
         logging.critical('Inconsistent name of inputgeom and config file. ')
         quit()
-    elif gauname!=False and cfgname==False:
-        shutil.copyfile(os.path.join(pwd,'config.cfg'),os.path.join(os.getcwd(),gauname+'.cfg'))
-        logging.warning('Config file is not found. A template is copied to current directory. Program will now quit.')
+    elif gauname != False and cfgname == False:
+        shutil.copyfile(
+            os.path.join(pwd, 'config.cfg'), os.path.join(os.getcwd(),
+                                                          gauname + '.cfg'))
+        logging.warning(
+            'Config file is not found. A template is copied to current directory. Program will now quit.')
         quit()
-    elif gauname!=False and cfgname!=False and cfgname==gauname:
-        inputgeom=gauname
-        cfgfile=cfgname
+    elif gauname != False and cfgname != False and cfgname == gauname:
+        inputgeom = gauname
+        cfgfile = cfgname
     else:
         logging.critical('No inputgeom file found.')
         quit()
 ###########################
 
-
 #### Logging module setting. Print INFO on screen and DEBUG INFO in file###########
-logging.basicConfig(filename=inputgeom+'.tsubasa',level=logging.DEBUG,filemode='w')
-console=logging.StreamHandler()
+logging.basicConfig(filename=inputgeom + '.tsubasa',
+                    level=logging.DEBUG,
+                    filemode='w')
+console = logging.StreamHandler()
 console.setLevel(logging.INFO)
-formatter=logging.Formatter('%(levelname)-8s %(message)s')
+formatter = logging.Formatter('%(levelname)-8s %(message)s')
 console.setFormatter(formatter)
 logging.getLogger('').addHandler(console)
 ###################################################################################
 
-
-
-logging.info('Read config from '+cfgfile+'.cfg\n')
-if not os.path.isfile(cfgfile+'.cfg'):
-    loging.critical(name+'.cfg does not exist! ')
+logging.info('Read config from ' + cfgfile + '.cfg\n')
+if not os.path.isfile(cfgfile + '.cfg'):
+    loging.critical(name + '.cfg does not exist! ')
     quit()
 
-opthead=''
-opttail=''
-freqhead=''
-resphead=''
-resptail=''
-mmhead=''
-ifwrite=0
+opthead = ''
+opttail = ''
+freqhead = ''
+resphead = ''
+resptail = ''
+mmhead = ''
+ifwrite = 0
 # Read configs
-with open(cfgname+'.cfg','r') as config:
+with open(cfgname + '.cfg', 'r') as config:
 
     for line in config.readlines():
-       # Read commands
-        if line.find('$g09rt')>=0:
-            rxccfile.gauCOM.g09rt=line[line.find('=''')+2:-2]
+        # Read commands
+        if line.find('$g09rt') >= 0:
+            rxccfile.gauCOM.g09rt = line[line.find('=' '') + 2:-2]
 
-        if line.find('$g09a2rt')>=0:
-            rxccfile.gauCOM.g09a2rt=line[line.find('=''')+2:-2]
+        if line.find('$g09a2rt') >= 0:
+            rxccfile.gauCOM.g09a2rt = line[line.find('=' '') + 2:-2]
 
-        if line.find('$antechamber')>=0:
-            rxccfile.gauLOG.antecommand=line[line.find('=''')+2:-2]
+        if line.find('$antechamber') >= 0:
+            rxccfile.gauLOG.antecommand = line[line.find('=' '') + 2:-2]
 
-        if line.find('$clean')>=0:
-            clean=line[line.find('=''')+2:-2]
+        if line.find('$clean') >= 0:
+            clean = line[line.find('=' '') + 2:-2]
 
-       # Read opthead
-        if line.find('--opthead--')>=0:
-            ifwrite=0
+    # Read opthead
+        if line.find('--opthead--') >= 0:
+            ifwrite = 0
 
-        if ifwrite==1:
-            opthead=opthead+line
-        if line.find('++opthead++')>=0:
-            ifwrite=1
+        if ifwrite == 1:
+            opthead = opthead + line
+        if line.find('++opthead++') >= 0:
+            ifwrite = 1
 
-       # Read opttail
-        if line.find('--opttail--')>=0:
-            ifwrite=0
-        if ifwrite==2:
-            opttail=opttail+line
-        if line.find('++opttail++')>=0:
-            ifwrite=2
+    # Read opttail
+        if line.find('--opttail--') >= 0:
+            ifwrite = 0
+        if ifwrite == 2:
+            opttail = opttail + line
+        if line.find('++opttail++') >= 0:
+            ifwrite = 2
 
-       # Read freqhead
-        if line.find('--freqhead--')>=0:
-            ifwrite=0
-        if ifwrite==3:
-            freqhead=freqhead+line
-        if line.find('++freqhead++')>=0:
-            ifwrite=3
+    # Read freqhead
+        if line.find('--freqhead--') >= 0:
+            ifwrite = 0
+        if ifwrite == 3:
+            freqhead = freqhead + line
+        if line.find('++freqhead++') >= 0:
+            ifwrite = 3
 
-       # Read resphead
-        if line.find('--resphead--')>=0:
-            ifwrite=0
-        if ifwrite==4:
-            resphead=resphead+line
-        if line.find('++resphead++')>=0:
-            ifwrite=4
+    # Read resphead
+        if line.find('--resphead--') >= 0:
+            ifwrite = 0
+        if ifwrite == 4:
+            resphead = resphead + line
+        if line.find('++resphead++') >= 0:
+            ifwrite = 4
 
-       # Read resptail
-        if line.find('--resptail--')>=0:
-            ifwrite=0
-        if ifwrite==5:
-            resptail=resptail+line
-        if line.find('++resptail++')>=0:
-            ifwrite=5
+    # Read resptail
+        if line.find('--resptail--') >= 0:
+            ifwrite = 0
+        if ifwrite == 5:
+            resptail = resptail + line
+        if line.find('++resptail++') >= 0:
+            ifwrite = 5
 
-       # Read mmhead
-        if line.find('--mmhead--')>=0:
-            ifwrite=0
-        if ifwrite==6:
-            mmhead=mmhead+line
-        if line.find('++mmhead++')>=0:
-            ifwrite=6
+    # Read mmhead
+        if line.find('--mmhead--') >= 0:
+            ifwrite = 0
+        if ifwrite == 6:
+            mmhead = mmhead + line
+        if line.find('++mmhead++') >= 0:
+            ifwrite = 6
 
-optfile=rxccfile.File('opt'+inputgeom)
-freqfile=rxccfile.File('freq'+inputgeom)
-respfile=rxccfile.File('resp'+inputgeom)
-
+optfile = rxccfile.File('opt' + inputgeom)
+freqfile = rxccfile.File('freq' + inputgeom)
+respfile = rxccfile.File('resp' + inputgeom)
 
 # Run Calculations
-if startfrom<1:
-    with open(inputgeom+'.gau','r') as initxyz:
-        with open(optfile.comname,'w') as f:
+if startfrom < 1:
+    with open(inputgeom + '.gau', 'r') as initxyz:
+        with open(optfile.comname, 'w') as f:
             f.write(opthead)
             f.write(initxyz.read())
             f.write(opttail)
@@ -196,17 +214,16 @@ if startfrom<1:
         logging.critical('Optimization failed')
         quit()
 
-    if stopafter==1:
+    if stopafter == 1:
         logging.warning('User request stop after optimization')
         quit()
 
-if startfrom<2:
-    with open(freqfile.comname,'w') as f:
-        freqhead='%chk='+os.path.split(optfile.chkname)[1]+'\n'+freqhead
+if startfrom < 2:
+    with open(freqfile.comname, 'w') as f:
+        freqhead = '%chk=' + os.path.split(optfile.chkname)[1] + '\n' + freqhead
         f.write(freqhead)
     logging.info('Running frequency calculation...')
     freqfile.com.rung09()
-
 
     try:
         freqfile.com.isover()
@@ -214,12 +231,13 @@ if startfrom<2:
         logging.critical('Frequency calculation failed')
         quit()
 
-    if stopafter==2:
+    if stopafter == 2:
         logging.warning('User request stop after frequency')
         quit()
-if startfrom<3:
-    with open(respfile.comname,'w') as f:
-        resphead='%chk='+os.path.split(freqfile.chkname)[1]+'\n'+resphead
+if startfrom < 3:
+    with open(respfile.comname, 'w') as f:
+        resphead = '%chk=' + os.path.split(freqfile.chkname)[
+            1] + '\n' + resphead
         f.write(resphead)
         f.write(resptail)
     logging.info('Running RESP calculation...')
@@ -230,212 +248,218 @@ if startfrom<3:
         logging.critical('MK calculation failed.')
         quit()
 
-    if stopafter==3:
+    if stopafter == 3:
         logging.warning('User request stop after resp')
         quit()
 
-if startfrom<4:
+if startfrom < 4:
     logging.info('Run antechamber:')
     respfile.log.runantecham()
-    if stopafter==4:
+    if stopafter == 4:
         loggin.warning('User request stop after antechamber')
         quit()
 
-
-logging.debug('Clean directory: '+clean)
+logging.debug('Clean directory: ' + clean)
 
 os.system(clean)
 
 logging.info('Format CHK file by: ')
 
 #Read fchk : coordinates, charge, spin, natoms
-qmfile=freqfile
+qmfile = freqfile
 qmfile.runformchk()
 qmfile.fchk.read()
 
-
 logging.debug('...done\n\nBuild mmxyz...')
-thisgeom=rxmol.Molecule('this')
-xyz=['']
+thisgeom = rxmol.Molecule('this')
+xyz = ['']
 thisgeom.readfromxyz(qmfile.fchk.xyz)
 
-
 #Read ac file to get Charge&Atomtype and assign to atoms
-if startfrom<5:
+if startfrom < 5:
     respfile.ac.read()
     thisgeom.readchargefromlist(respfile.ac.atomchargelist)
     thisgeom.readtypefromlist(respfile.ac.atomtypelist)
-if stopafter==3:
+if stopafter == 3:
     logging.warning('User request stop after readac')
     quit()
 
-
 logging.debug('Read internal coordinates from connectivity...')
 optfile.com.read()
-connectivity=optfile.com.connectivity
+connectivity = optfile.com.connectivity
 thisgeom.readconnectivity(connectivity)
 
-
 # Build MM input
-mmxyz=str(qmfile.totalcharge)+' '+str(qmfile.multiplicity)+'\n'
+mmxyz = str(qmfile.totalcharge) + ' ' + str(qmfile.multiplicity) + '\n'
+
+
 def f2s(fl):
     return "{: .12f}".format(fl)
 
-for i in range(1,qmfile.natoms+1):
-    mmxyz=mmxyz+thisgeom[i].atomsym+'-'+thisgeom[i].atomtype+'-'+'{:.6f}'.format(thisgeom[i].atomcharge)+'   '+'   '.join([f2s(x) for x in thisgeom[i].coords])+'\n'
 
-mmxyz=mmxyz+'\n'
+for i in range(1, qmfile.natoms + 1):
+    mmxyz = mmxyz + thisgeom[i].atomsym + '-' + thisgeom[
+        i].atomtype + '-' + '{:.6f}'.format(thisgeom[
+            i].atomcharge) + '   ' + '   '.join(
+                [f2s(x) for x in thisgeom[i].coords]) + '\n'
+
+mmxyz = mmxyz + '\n'
 
 
 class Bondfunc(object):
-    def __init__(self,mole,bondobj):
-        a=bondobj[1].atomtype
-        b=bondobj[2].atomtype
-        if a>b:
-            a,b=b,a
-        self.link=a+' '+b
+
+    def __init__(self, mole, bondobj):
+        a = bondobj[1].atomtype
+        b = bondobj[2].atomtype
+        if a > b:
+            a, b = b, a
+        self.link = a + ' ' + b
 
 
 class Anglefunc(object):
 
-    def __init__(self,molecule,angleobj):
-        a=angleobj[1].atomtype
-        b=angleobj[2].atomtype
-        c=angleobj[3].atomtype
-        if a>c:
-            a,c=c,a
-        self.link=a+' '+b+' '+c
+    def __init__(self, molecule, angleobj):
+        a = angleobj[1].atomtype
+        b = angleobj[2].atomtype
+        c = angleobj[3].atomtype
+        if a > c:
+            a, c = c, a
+        self.link = a + ' ' + b + ' ' + c
+
 
 class Dihdfunc(object):
 
-    def __init__(self,molecule,dihdobj):
-        a=dihdobj[1].atomtype
-        b=dihdobj[2].atomtype
-        c=dihdobj[3].atomtype
-        d=dihdobj[4].atomtype
-        self.periodicity=2
-        self.phase=180.0
-        self.npaths=1.0
-        if b>c:
-            a,d=d,a
-            b,c=c,b
-        elif b==c:
-            if a>d:
-                a,d=d,a
-        self.link=a+' '+b+' '+c+' '+d
+    def __init__(self, molecule, dihdobj):
+        a = dihdobj[1].atomtype
+        b = dihdobj[2].atomtype
+        c = dihdobj[3].atomtype
+        d = dihdobj[4].atomtype
+        self.periodicity = 2
+        self.phase = 180.0
+        self.npaths = 1.0
+        if b > c:
+            a, d = d, a
+            b, c = c, b
+        elif b == c:
+            if a > d:
+                a, d = d, a
+        self.link = a + ' ' + b + ' ' + c + ' ' + d
 
 # add funcs
-thisgeom.dihdfunc={}
-thisgeom.anglefunc={}
-thisgeom.bondfunc={}
+thisgeom.dihdfunc = {}
+thisgeom.anglefunc = {}
+thisgeom.bondfunc = {}
 for bond in thisgeom.bondlist.values():
-    thisfunc=Bondfunc(thisgeom,bond)
-    thisgeom.bondfunc.update({thisfunc.link:bond})
-    bond.func=thisfunc
+    thisfunc = Bondfunc(thisgeom, bond)
+    thisgeom.bondfunc.update({thisfunc.link: bond})
+    bond.func = thisfunc
 for angle in thisgeom.anglelist.values():
-    thisfunc=Anglefunc(thisgeom,angle)
-    thisgeom.anglefunc.update({thisfunc.link:angle})
-    angle.func=thisfunc
+    thisfunc = Anglefunc(thisgeom, angle)
+    thisgeom.anglefunc.update({thisfunc.link: angle})
+    angle.func = thisfunc
 for dihd in thisgeom.dihdlist.values():
-    thisfunc=Dihdfunc(thisgeom,dihd)
-    thisgeom.dihdfunc.update({thisfunc.link:dihd})
-    dihd.func=thisfunc
-
-
-
+    thisfunc = Dihdfunc(thisgeom, dihd)
+    thisgeom.dihdfunc.update({thisfunc.link: dihd})
+    dihd.func = thisfunc
 
 # Read internal coordinates, add bond, angle, dihedral and define MM functions
-sorteddihd=sorted(thisgeom.dihdfunc.keys(),key=lambda item: item.split()[1]+' '+item.split()[2])
-sortedangle=sorted(thisgeom.anglefunc.keys(),key=lambda item: item.split()[1]+' '+item.split()[0])
-sortedbond=sorted(thisgeom.bondfunc.keys(),key=lambda item: item.split()[0])
-
+sorteddihd = sorted(thisgeom.dihdfunc.keys(),
+                    key=lambda item: item.split()[1] + ' ' + item.split()[2])
+sortedangle = sorted(thisgeom.anglefunc.keys(),
+                     key=lambda item: item.split()[1] + ' ' + item.split()[0])
+sortedbond = sorted(thisgeom.bondfunc.keys(), key=lambda item: item.split()[0])
 
 #Build input file and MMtail(functions)
-mmfile=rxccfile.File('mm'+gauname)
-mmtail=''
-input='natoms='+str(qmfile.natoms)+'\nmmfile='+os.path.split(mmfile.comname)[1]+'\n'+'qmfchk='+os.path.split(freqfile.fchkname)[1]+'\n'+'qmlog='+os.path.split(freqfile.logname)[1]+'\n'
-input=input+'\n\nLink start\n'
-
-
-
+mmfile = rxccfile.File('mm' + gauname)
+mmtail = ''
+input = 'natoms=' + str(qmfile.natoms) + '\nmmfile=' + os.path.split(
+    mmfile.comname)[1] + '\n' + 'qmfchk=' + os.path.split(freqfile.fchkname)[
+        1] + '\n' + 'qmlog=' + os.path.split(freqfile.logname)[1] + '\n'
+input = input + '\n\nLink start\n'
 
 # dihedral is assigned n=2 ,phase=180 and Npaths=1 temporarily
 
 for key in sorteddihd:
     # key is sorted dihdfunc
-    mmtail=mmtail+'AmbTrs '+key+' 0 180 0 0 0.0 XXXXXX 0.0 0.0 1.0\n'
+    mmtail = mmtail + 'AmbTrs ' + key + ' 0 180 0 0 0.0 XXXXXX 0.0 0.0 1.0\n'
     # For each key of dihdfunc.key, filter x in dihedral.list.values(obj) to find out whose x.func(obj) match this key
     # 'this' will be the dihd obj who satisfy the condition aforementioned
-    this=filter(lambda x:x.func.link==key, thisgeom.dihdlist.values())
-    this=list(set(this))
+    this = filter(lambda x: x.func.link == key, thisgeom.dihdlist.values())
+    this = list(set(this))
     for x in this:
-        input+=str(x[1].atomnum)+'-'+str(x[2].atomnum)+'-'+str(x[3].atomnum)+'-'+str(x[4].atomnum)+'\n'
-    input+='next  # '+key+'\n'
+        input += str(x[1].atomnum) + '-' + str(x[2].atomnum) + '-' + str(x[
+            3].atomnum) + '-' + str(x[4].atomnum) + '\n'
+    input += 'next  # ' + key + '\n'
 
 for key in sortedangle:
-    this=filter(lambda x:x.func.link==key, thisgeom.anglelist.values())
-    this=list(set(this))
-    total=0
-    for num,x in enumerate(this):
-        total+=x.anglevalue
-        now=total/(num+1)
-        if abs(x.anglevalue-now) > 3 and total!=0:
-            logging.warning('Angle '+x.repr+' has very different angle value of  {:.4f}'.format(x.anglevalue)+' compared to '+x.func.link+' {:.4f}'.format(now))
-        input+=str(x[1].atomnum)+'-'+str(x[2].atomnum)+'-'+str(x[3].atomnum)+'\n'
-    input+='next  # '+key+'\n'
-    total=total/len(this)
-    total="{:.4f}".format(total)
-    mmtail=mmtail+'HrmBnd1 '+key+' XXXXXX '+total+'\n'
+    this = filter(lambda x: x.func.link == key, thisgeom.anglelist.values())
+    this = list(set(this))
+    total = 0
+    for num, x in enumerate(this):
+        total += x.anglevalue
+        now = total / (num + 1)
+        if abs(x.anglevalue - now) > 3 and total != 0:
+            logging.warning('Angle ' + x.repr +
+                            ' has very different angle value of  {:.4f}'.format(
+                                x.anglevalue) + ' compared to ' + x.func.link +
+                            ' {:.4f}'.format(now))
+        input += str(x[1].atomnum) + '-' + str(x[2].atomnum) + '-' + str(x[
+            3].atomnum) + '\n'
+    input += 'next  # ' + key + '\n'
+    total = total / len(this)
+    total = "{:.4f}".format(total)
+    mmtail = mmtail + 'HrmBnd1 ' + key + ' XXXXXX ' + total + '\n'
 for key in sortedbond:
-    this=filter(lambda x:x.func.link==key, thisgeom.bondlist.values())
-    this=list(set(this))
-    total=0
-    for num,x in enumerate(this):
-        total+=x.length
-        now=total/(num+1)
-        if abs(x.length-now) > 0.1 and total!=0:
-            logging.warning('bond '+x.repr+' has very different length of {:.4f}'.format(x.length)+' compared to '+x.func.link+' {:.5f}'.format(now))
-        input+=str(x[1].atomnum)+'-'+str(x[2].atomnum)+'\n'
-    input+='next  # '+key+'\n'
-    total=total/len(this)
-    total="{:.5f}".format(total)
-    mmtail=mmtail+'HrmStr1 '+key+' XXXXXX '+total+'\n'
+    this = filter(lambda x: x.func.link == key, thisgeom.bondlist.values())
+    this = list(set(this))
+    total = 0
+    for num, x in enumerate(this):
+        total += x.length
+        now = total / (num + 1)
+        if abs(x.length - now) > 0.1 and total != 0:
+            logging.warning('bond ' + x.repr +
+                            ' has very different length of {:.4f}'.format(
+                                x.length) + ' compared to ' + x.func.link +
+                            ' {:.5f}'.format(now))
+        input += str(x[1].atomnum) + '-' + str(x[2].atomnum) + '\n'
+    input += 'next  # ' + key + '\n'
+    total = total / len(this)
+    total = "{:.5f}".format(total)
+    mmtail = mmtail + 'HrmStr1 ' + key + ' XXXXXX ' + total + '\n'
 
 #Add Nonbon function and vdW parameters
-with open('input.inp','w') as f:
+with open('input.inp', 'w') as f:
     f.write(input)
-mmtail=mmtail+'Nonbon 3 1 0 0 0.0 0.0 0.5 0.0 0.0 -1.2\n'
+mmtail = mmtail + 'Nonbon 3 1 0 0 0.0 0.0 0.5 0.0 0.0 -1.2\n'
 
-
-
-radii={}
-welldepth={}
+radii = {}
+welldepth = {}
 #read all vdw in files
-with open(os.path.join(pwd,'vdw.dat'),'r') as f:
+with open(os.path.join(pwd, 'vdw.dat'), 'r') as f:
     for string in f.readlines():
-        item=string.split()
-        radii.update({item[0].strip(' '):item[1].strip(' ')})
-        welldepth.update({item[0].strip(' '):item[2].strip(' ')})
+        item = string.split()
+        radii.update({item[0].strip(' '): item[1].strip(' ')})
+        welldepth.update({item[0].strip(' '): item[2].strip(' ')})
 if externalvdw:
-    logging.info('Read user provided vdW parameters from '+externalvdw)
-    with open(externalvdw,'r') as f:
+    logging.info('Read user provided vdW parameters from ' + externalvdw)
+    with open(externalvdw, 'r') as f:
         for string in f.readlines():
-            item=string.split()
-            radii.update({item[0].strip(' '):item[1].strip(' ')})
-            welldepth.update({item[0].strip(' '):item[2].strip(' ')})
-item=[]
-
+            item = string.split()
+            radii.update({item[0].strip(' '): item[1].strip(' ')})
+            welldepth.update({item[0].strip(' '): item[2].strip(' ')})
+item = []
 
 #find existing atomtypes
 for atom in thisgeom:
     item.append(atom.atomtype)
-item=list(set(item))
-for i in range(0,len(item)):
-    mmtail+='VDW '+item[i]+'  '+radii[item[i]]+'  '+welldepth[item[i]]+'\n'
-mmtail=mmtail+'\n'
+item = list(set(item))
+for i in range(0, len(item)):
+    mmtail += 'VDW ' + item[i] + '  ' + radii[item[i]] + '  ' + welldepth[item[
+        i]] + '\n'
+mmtail = mmtail + '\n'
 
 #write mmfile
-with open(mmfile.comname,'w') as f:
+with open(mmfile.comname, 'w') as f:
     f.write(mmhead)
     f.write(mmxyz)
     f.write(connectivity)
@@ -448,7 +472,7 @@ freqfile.runformchk()
 os.system('mkdir tsubasa')
 os.system('mv * tsubasa')
 os.system('cp tsubasa/mm* .')
-os.system('cp tsubasa/'+os.path.split(freqfile.fchkname)[1]+' .')
-os.system('cp tsubasa/'+os.path.split(freqfile.fchkname)[1]+' .')
-os.system('cp tsubasa/'+os.path.split(freqfile.logname)[1]+' .')
+os.system('cp tsubasa/' + os.path.split(freqfile.fchkname)[1] + ' .')
+os.system('cp tsubasa/' + os.path.split(freqfile.fchkname)[1] + ' .')
+os.system('cp tsubasa/' + os.path.split(freqfile.logname)[1] + ' .')
 os.system('cp tsubasa/input.inp .')
