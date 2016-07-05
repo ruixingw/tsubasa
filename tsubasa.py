@@ -11,10 +11,11 @@ import os, argparse, logging, shutil
 
 ################Parse input
 parser = argparse.ArgumentParser()
-parser.add_argument('-i',
-                    dest='inputgeom',
-                    default=False,
-                    help='Inputfile including molecular specs and connectivity')
+parser.add_argument(
+    '-i',
+    dest='inputgeom',
+    default=False,
+    help='Inputfile including molecular specs and connectivity')
 parser.add_argument('-c',
                     dest='configfile',
                     default=False,
@@ -220,7 +221,8 @@ if startfrom < 1:
 
 if startfrom < 2:
     with open(freqfile.comname, 'w') as f:
-        freqhead = '%chk=' + os.path.split(optfile.chkname)[1] + '\n' + freqhead
+        freqhead = '%chk=' + os.path.split(optfile.chkname)[
+            1] + '\n' + freqhead
         f.write(freqhead)
     logging.info('Running frequency calculation...')
     freqfile.com.rung09()
@@ -307,7 +309,6 @@ mmxyz = mmxyz + '\n'
 
 
 class Bondfunc(object):
-
     def __init__(self, mole, bondobj):
         a = bondobj[1].atomtype
         b = bondobj[2].atomtype
@@ -317,7 +318,6 @@ class Bondfunc(object):
 
 
 class Anglefunc(object):
-
     def __init__(self, molecule, angleobj):
         a = angleobj[1].atomtype
         b = angleobj[2].atomtype
@@ -328,7 +328,6 @@ class Anglefunc(object):
 
 
 class Dihdfunc(object):
-
     def __init__(self, molecule, dihdobj):
         a = dihdobj[1].atomtype
         b = dihdobj[2].atomtype
@@ -399,10 +398,11 @@ for key in sortedangle:
         total += x.anglevalue
         now = total / (num + 1)
         if abs(x.anglevalue - now) > 3 and total != 0:
-            logging.warning('Angle ' + x.repr +
-                            ' has very different angle value of  {:.4f}'.format(
-                                x.anglevalue) + ' compared to ' + x.func.link +
-                            ' {:.4f}'.format(now))
+            logging.warning(
+                'Angle ' + x.repr +
+                ' has very different angle value of  {:.4f}'.format(
+                    x.anglevalue) + ' compared to ' + x.func.link +
+                ' {:.4f}'.format(now))
         input += str(x[1].atomnum) + '-' + str(x[2].atomnum) + '-' + str(x[
             3].atomnum) + '\n'
     input += 'next  # ' + key + '\n'
