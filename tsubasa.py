@@ -7,9 +7,12 @@
 from __future__ import print_function
 import rxcclib.molecules as rxmol
 import rxcclib.chemfiles as rxccfile
-import os, argparse, logging, shutil
+import os
+import argparse
+import logging
+import shutil
 
-################Parse input
+# Parse input
 parser = argparse.ArgumentParser()
 parser.add_argument(
     '-i',
@@ -28,11 +31,11 @@ parser.add_argument('--readvdw',
 parser.add_argument(
     '--startfrom',
     default='opt',
-    choices=['freq', 'resp', 'antechamber', 'readac'],
-    help="Start from a certain step. Choices=['opt','freq','resp','antechamber','readac']")
+    choices=['freq', 'resp', 'antechamber', 'readmol2'],
+    help="Start from a certain step. Choices=['opt','freq','resp','antechamber','readmol2']")
 parser.add_argument(
     '--stopafter',
-    default='readac',
+    default='readmol2',
     choices=['opt', 'freq', 'resp', 'antechamber'],
     help="Stop after a certain step. Choices=['freq','resp','antechamber']")
 args = parser.parse_args()
@@ -55,9 +58,9 @@ elif startfrom == 'resp':
 elif startfrom == 'antechamber':
     startfrom = 3
     logging.warning('Start from antechamber')
-elif startfrom == 'readac':
+elif startfrom == 'readmol2':
     startfrom = 4
-    logging.warning('Start from readac')
+    logging.warning('Start from readmol2')
 
 stopafter = args.stopafter
 if stopafter == 'opt':
@@ -72,11 +75,11 @@ elif stopafter == 'resp':
 elif stopafter == 'antechamber':
     stopafter = 4
     logging.warning('stop after antechamber')
-elif stopafter == 'readac':
+elif stopafter == 'readmol2':
     stopafter = 5
 
 ##############
-############## copy config file to current path if no argument is specified
+# copy config file to current pathp if no argument is specified
 pwd = os.path.split(os.path.realpath(__file__))[0]
 if inputgeom == False and cfgfile == False and externalvdw == False:
     gauname = False
@@ -107,7 +110,7 @@ if inputgeom == False and cfgfile == False and externalvdw == False:
         quit()
 ###########################
 
-#### Logging module setting. Print INFO on screen and DEBUG INFO in file###########
+#### Logging module setting. Print INFO on screen and DEBUG INFO in file##
 logging.basicConfig(filename=inputgeom + '.tsubasa',
                     level=logging.DEBUG,
                     filemode='w')
@@ -116,7 +119,7 @@ console.setLevel(logging.INFO)
 formatter = logging.Formatter('%(levelname)-8s %(message)s')
 console.setFormatter(formatter)
 logging.getLogger('').addHandler(console)
-###################################################################################
+##########################################################################
 
 logging.info('Read config from ' + cfgfile + '.cfg\n')
 if not os.path.isfile(cfgfile + '.cfg'):
@@ -136,13 +139,13 @@ with open(cfgname + '.cfg', 'r') as config:
     for line in config.readlines():
         # Read commands
         if line.find('$g09rt') >= 0:
-            rxccfile.gauCOM.g09rt = line[line.find('=' '') + 2:-2]
+            rxccfile.GauCOM.g09rt = line[line.find('=' '') + 2:-2]
 
         if line.find('$g09a2rt') >= 0:
-            rxccfile.gauCOM.g09a2rt = line[line.find('=' '') + 2:-2]
+            rxccfile.GauCOM.g09a2rt = line[line.find('=' '') + 2:-2]
 
         if line.find('$antechamber') >= 0:
-            rxccfile.gauLOG.antecommand = line[line.find('=' '') + 2:-2]
+            rxccfile.GauLOG.antecommand = line[line.find('=' '') + 2:-2]
 
         if line.find('$clean') >= 0:
             clean = line[line.find('=' '') + 2:-2]
@@ -267,7 +270,7 @@ os.system(clean)
 
 logging.info('Format CHK file by: ')
 
-#Read fchk : coordinates, charge, spin, natoms
+# Read fchk : coordinates, charge, spin, natoms
 qmfile = freqfile
 qmfile.runformchk()
 qmfile.fchk.read()
@@ -277,18 +280,26 @@ thisgeom = rxmol.Molecule('this')
 xyz = ['']
 thisgeom.readfromxyz(qmfile.fchk.xyz)
 
-#Read ac file to get Charge&Atomtype and assign to atoms
+# Read mol2 file to get Charge&Atomtype and assign to atoms
 if startfrom < 5:
-    respfile.ac.read()
-    thisgeom.readchargefromlist(respfile.ac.atomchargelist)
-    thisgeom.readtypefromlist(respfile.ac.atomtypelist)
+    respfile.mol2.read()
+    thisgeom.readchargefromlist(respfile.mol2.atomchargelist)
+    thisgeom.readtypefromlist(respfile.mol2.atomtypelist)
 if stopafter == 3:
-    logging.warning('User request stop after readac')
+    logging.warning('User request stop after readmol2')
     quit()
 
+connectivity = ''
 logging.debug('Read internal coordinates from connectivity...')
-optfile.com.read()
-connectivity = optfile.com.connectivity
+with open(inputgeom + '.gau', 'r') as f:
+    for line in f:
+        if line == '\n':
+            break
+    for line in f:
+        if line == '\n':
+            break
+        connectivity += line
+
 thisgeom.readconnectivity(connectivity)
 
 # Build MM input
@@ -300,7 +311,7 @@ def f2s(fl):
 
 
 for i in range(1, qmfile.natoms + 1):
-    mmxyz = mmxyz + thisgeom[i].atomsym + '-' + thisgeom[
+    mmxyz = mmxyz + thisgeom[i].elementsym + '-' + thisgeom[
         i].atomtype + '-' + '{:.6f}'.format(thisgeom[
             i].atomcharge) + '   ' + '   '.join(
                 [f2s(x) for x in thisgeom[i].coords]) + '\n'
@@ -309,6 +320,7 @@ mmxyz = mmxyz + '\n'
 
 
 class Bondfunc(object):
+
     def __init__(self, mole, bondobj):
         a = bondobj[1].atomtype
         b = bondobj[2].atomtype
@@ -318,6 +330,7 @@ class Bondfunc(object):
 
 
 class Anglefunc(object):
+
     def __init__(self, molecule, angleobj):
         a = angleobj[1].atomtype
         b = angleobj[2].atomtype
@@ -328,6 +341,7 @@ class Anglefunc(object):
 
 
 class Dihdfunc(object):
+
     def __init__(self, molecule, dihdobj):
         a = dihdobj[1].atomtype
         b = dihdobj[2].atomtype
@@ -368,7 +382,7 @@ sortedangle = sorted(thisgeom.anglefunc.keys(),
                      key=lambda item: item.split()[1] + ' ' + item.split()[0])
 sortedbond = sorted(thisgeom.bondfunc.keys(), key=lambda item: item.split()[0])
 
-#Build input file and MMtail(functions)
+# Build input file and MMtail(functions)
 mmfile = rxccfile.File('mm' + gauname)
 mmtail = ''
 input = 'natoms=' + str(qmfile.natoms) + '\nmmfile=' + os.path.split(
@@ -427,14 +441,14 @@ for key in sortedbond:
     total = "{:.5f}".format(total)
     mmtail = mmtail + 'HrmStr1 ' + key + ' XXXXXX ' + total + '\n'
 
-#Add Nonbon function and vdW parameters
+# Add Nonbon function and vdW parameters
 with open('input.inp', 'w') as f:
     f.write(input)
 mmtail = mmtail + 'Nonbon 3 1 0 0 0.0 0.0 0.5 0.0 0.0 -1.2\n'
 
 radii = {}
 welldepth = {}
-#read all vdw in files
+# read all vdw in files
 with open(os.path.join(pwd, 'vdw.dat'), 'r') as f:
     for string in f.readlines():
         item = string.split()
@@ -449,7 +463,7 @@ if externalvdw:
             welldepth.update({item[0].strip(' '): item[2].strip(' ')})
 item = []
 
-#find existing atomtypes
+# find existing atomtypes
 for atom in thisgeom:
     item.append(atom.atomtype)
 item = list(set(item))
@@ -458,7 +472,7 @@ for i in range(0, len(item)):
         i]] + '\n'
 mmtail = mmtail + '\n'
 
-#write mmfile
+# write mmfile
 with open(mmfile.comname, 'w') as f:
     f.write(mmhead)
     f.write(mmxyz)
