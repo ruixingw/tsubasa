@@ -8,17 +8,19 @@ from __future__ import print_function
 import rxcclib.molecules as rxmol
 import rxcclib.chemfiles as rxccfile
 import os
+import sys
+import yaml
 import argparse
 import logging
 import shutil
 
 # Parse input
 parser = argparse.ArgumentParser()
-parser.add_argument(
-    '-i',
-    dest='inputgeom',
-    default=False,
-    help='Inputfile including molecular specs and connectivity')
+parser.add_argument('-i',
+                    dest='inputgeom',
+                    default=False,
+                    help=('Inputfile including mo'
+                          'lecular specs and connectivity'))
 parser.add_argument('-c',
                     dest='configfile',
                     default=False,
@@ -32,7 +34,8 @@ parser.add_argument(
     '--startfrom',
     default='opt',
     choices=['freq', 'resp', 'antechamber', 'readmol2'],
-    help="Start from a certain step. Choices=['opt','freq','resp','antechamber','readmol2']")
+    help=("Start from a certain step. Choices"
+          "=['opt','freq','resp','antechamber','readmol2']"))
 parser.add_argument(
     '--stopafter',
     default='readmol2',
@@ -40,7 +43,7 @@ parser.add_argument(
     help="Stop after a certain step. Choices=['freq','resp','antechamber']")
 args = parser.parse_args()
 inputgeom = args.inputgeom
-cfgfile = args.configfile
+ymlfile = args.configfile
 externalvdw = args.externalvdwfile
 print(externalvdw)
 if externalvdw:
@@ -81,36 +84,38 @@ elif stopafter == 'readmol2':
 ##############
 # copy config file to current pathp if no argument is specified
 pwd = os.path.split(os.path.realpath(__file__))[0]
-if inputgeom == False and cfgfile == False and externalvdw == False:
+if inputgeom is False and ymlfile is False and externalvdw is False:
     gauname = False
-    cfgname = False
+    ymlname = False
     vdwname = False
     for filename in os.listdir():
         if filename.find('.gau') >= 0:
             gauname = filename[0:filename.find('.gau')]
-        if filename.find('.cfg') >= 0:
-            cfgname = filename[0:filename.find('.cfg')]
+        if filename.find('.yml') >= 0:
+            ymlname = filename[0:filename.find('.yml')]
         if filename.find('vdw') >= 0:
             externalvdw = filename
-    if gauname != False and cfgname != False and cfgname != gauname:
+    if gauname and ymlname and ymlname != gauname:
+        print(ymlname, gauname)
         logging.critical('Inconsistent name of inputgeom and config file. ')
-        quit()
-    elif gauname != False and cfgname == False:
+        sys.exit()
+    elif gauname and not ymlname:
         shutil.copyfile(
-            os.path.join(pwd, 'config.cfg'), os.path.join(os.getcwd(),
-                                                          gauname + '.cfg'))
+            os.path.join(pwd, 'config.yml'), os.path.join(os.getcwd(),
+                                                          gauname + '.yml'))
         logging.warning(
-            'Config file is not found. A template is copied to current directory. Program will now quit.')
-        quit()
-    elif gauname != False and cfgname != False and cfgname == gauname:
+            'Config file is not found. A template'
+            ' is copied to current directory. Program will now quit.')
+        sys.exit()
+    elif gauname and ymlname and ymlname == gauname:
         inputgeom = gauname
-        cfgfile = cfgname
+        ymlfile = ymlname
     else:
         logging.critical('No inputgeom file found.')
-        quit()
+        sys.exit()
 ###########################
 
-#### Logging module setting. Print INFO on screen and DEBUG INFO in file##
+# Logging module setting. Print INFO on screen and DEBUG INFO in file##
 logging.basicConfig(filename=inputgeom + '.tsubasa',
                     level=logging.DEBUG,
                     filemode='w')
@@ -121,83 +126,25 @@ console.setFormatter(formatter)
 logging.getLogger('').addHandler(console)
 ##########################################################################
 
-logging.info('Read config from ' + cfgfile + '.cfg\n')
-if not os.path.isfile(cfgfile + '.cfg'):
-    loging.critical(name + '.cfg does not exist! ')
-    quit()
+logging.info('Read config from ' + ymlfile + '.yml\n')
+if not os.path.isfile(ymlfile + '.yml'):
+    logging.critical(ymlname + '.yml does not exist! ')
+    sys.exit()
 
-opthead = ''
-opttail = ''
-freqhead = ''
-resphead = ''
-resptail = ''
-mmhead = ''
-ifwrite = 0
-# Read configs
-with open(cfgname + '.cfg', 'r') as config:
+with open(ymlfile + '.yml', 'r') as f:
+    yml = f.read()
 
-    for line in config.readlines():
-        # Read commands
-        if line.find('$g09rt') >= 0:
-            rxccfile.GauCOM.g09rt = line[line.find('=' '') + 2:-2]
-
-        if line.find('$g09a2rt') >= 0:
-            rxccfile.GauCOM.g09a2rt = line[line.find('=' '') + 2:-2]
-
-        if line.find('$antechamber') >= 0:
-            rxccfile.GauLOG.antecommand = line[line.find('=' '') + 2:-2]
-
-        if line.find('$clean') >= 0:
-            clean = line[line.find('=' '') + 2:-2]
-
-    # Read opthead
-        if line.find('--opthead--') >= 0:
-            ifwrite = 0
-
-        if ifwrite == 1:
-            opthead = opthead + line
-        if line.find('++opthead++') >= 0:
-            ifwrite = 1
-
-    # Read opttail
-        if line.find('--opttail--') >= 0:
-            ifwrite = 0
-        if ifwrite == 2:
-            opttail = opttail + line
-        if line.find('++opttail++') >= 0:
-            ifwrite = 2
-
-    # Read freqhead
-        if line.find('--freqhead--') >= 0:
-            ifwrite = 0
-        if ifwrite == 3:
-            freqhead = freqhead + line
-        if line.find('++freqhead++') >= 0:
-            ifwrite = 3
-
-    # Read resphead
-        if line.find('--resphead--') >= 0:
-            ifwrite = 0
-        if ifwrite == 4:
-            resphead = resphead + line
-        if line.find('++resphead++') >= 0:
-            ifwrite = 4
-
-    # Read resptail
-        if line.find('--resptail--') >= 0:
-            ifwrite = 0
-        if ifwrite == 5:
-            resptail = resptail + line
-        if line.find('++resptail++') >= 0:
-            ifwrite = 5
-
-    # Read mmhead
-        if line.find('--mmhead--') >= 0:
-            ifwrite = 0
-        if ifwrite == 6:
-            mmhead = mmhead + line
-        if line.find('++mmhead++') >= 0:
-            ifwrite = 6
+config = yaml.load(yml)
+rxccfile.GauCOM.g09rt = config['g09rt']
+rxccfile.GauCOM.g09a2rt = config['g09a2rt']
+rxccfile.GauLOG.antecommand = config['antechamber']
+clean = config['clean']
+opthead = config['opthead'] + '\n'
+opttail = config['opttail'] + '\n'
+freqhead = config['freqhead'] + '\n'
+resphead = config['resphead'] + '\n'
+resptail = config['resptail'] + '\n'
+mmhead = config['mmhead'] + '\n'
 
 optfile = rxccfile.File('opt' + inputgeom)
 freqfile = rxccfile.File('freq' + inputgeom)
@@ -216,16 +163,15 @@ if startfrom < 1:
         optfile.com.isover()
     except:
         logging.critical('Optimization failed')
-        quit()
+        sys.exit()
 
     if stopafter == 1:
         logging.warning('User request stop after optimization')
-        quit()
+        sys.exit()
 
 if startfrom < 2:
     with open(freqfile.comname, 'w') as f:
-        freqhead = '%chk=' + os.path.split(optfile.chkname)[
-            1] + '\n' + freqhead
+        freqhead = '%chk=' + os.path.split(optfile.chkname)[1] + '\n' + freqhead
         f.write(freqhead)
     logging.info('Running frequency calculation...')
     freqfile.com.rung09()
@@ -234,11 +180,11 @@ if startfrom < 2:
         freqfile.com.isover()
     except:
         logging.critical('Frequency calculation failed')
-        quit()
+        sys.exit()
 
     if stopafter == 2:
         logging.warning('User request stop after frequency')
-        quit()
+        sys.exit()
 if startfrom < 3:
     with open(respfile.comname, 'w') as f:
         resphead = '%chk=' + os.path.split(freqfile.chkname)[
@@ -251,18 +197,18 @@ if startfrom < 3:
         respfile.com.isover()
     except:
         logging.critical('MK calculation failed.')
-        quit()
+        sys.exit()
 
     if stopafter == 3:
         logging.warning('User request stop after resp')
-        quit()
+        sys.exit()
 
 if startfrom < 4:
     logging.info('Run antechamber:')
     respfile.log.runantecham()
     if stopafter == 4:
         loggin.warning('User request stop after antechamber')
-        quit()
+        sys.exit()
 
 logging.debug('Clean directory: ' + clean)
 
@@ -287,7 +233,7 @@ if startfrom < 5:
     thisgeom.readtypefromlist(respfile.mol2.atomtypelist)
 if stopafter == 3:
     logging.warning('User request stop after readmol2')
-    quit()
+    sys.exit()
 
 connectivity = ''
 logging.debug('Read internal coordinates from connectivity...')
@@ -412,11 +358,10 @@ for key in sortedangle:
         total += x.anglevalue
         now = total / (num + 1)
         if abs(x.anglevalue - now) > 3 and total != 0:
-            logging.warning(
-                'Angle ' + x.repr +
-                ' has very different angle value of  {:.4f}'.format(
-                    x.anglevalue) + ' compared to ' + x.func.link +
-                ' {:.4f}'.format(now))
+            logging.warning('Angle ' + x.repr +
+                            ' has very different angle value of  {:.4f}'.format(
+                                x.anglevalue) + ' compared to ' + x.func.link +
+                            ' {:.4f}'.format(now))
         input += str(x[1].atomnum) + '-' + str(x[2].atomnum) + '-' + str(x[
             3].atomnum) + '\n'
     input += 'next  # ' + key + '\n'
