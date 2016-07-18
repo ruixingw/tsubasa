@@ -5,7 +5,7 @@
 ### What is it?
 *Tsubasa* is a program to prepare input files for Hessian Fitting parameterization.
 ### Why is it?
-Hessian Fitting scheme requires QM optimized geometry, Hessian, RESP charge, and a MM input file. Preparing MM input file for Hessian Fitting is a very complicated work. The major difficulty is identifying MM functions. MM functions are all bond types, angle types and dihedral types. Manually identifying all MM functions without a miss is hard for large molecule. The equilibrium values of harmonic terms (bond stretching and angle bending) are averaged from many bond distances or angles, while this procedure is also complicated for human. *Tsubasa* program automatically do all calculations, identify MM functions and format every thing done into a MM input file, which is eventually used by Hessian Fitting programs.
+Hessian Fitting scheme requires QM optimized geometry, Hessian, RESP charge, and a MM input file. Preparing MM input file for Hessian Fitting is a very complicated work for human. *Tsubasa* program automatically do all calculations, identify MM functions and format every thing done into a MM input file, which is eventually used by Hessian Fitting programs.
 
 ## Installation
 
@@ -14,12 +14,11 @@ Tsubasa requires the following packages.
 
 - [Python3](https://www.python.org/) ([Anaconda](https://www.continuum.io/downloads) is strongly recommended)
 - [numpy](http://www.numpy.org/) (Included in Anaconda)
-- [cclib](https://cclib.github.io/) (simply install by ```pip install cclib```)
 - [rxcclib](https://github.com/ruixingw/rxcclib) 
 
 ### Get Tsubasa
 1. Clone this repository by ```git clone https://github.com/ruixingw/tsubasa.git```.
-2. Add the ```tsubasa``` directory to your $PATH environment.
+2. Make ```tsubasa.py``` global approachable. (You can 1. add the ```tsubasa``` directory to your $PATH environment, or 2. create a soft link for tsubasa.py in your existing $PATH.).
 
 ## Quick Start
 
@@ -61,27 +60,20 @@ H     -1.982726171199      1.295519560979     -0.001284573853
 
 Note that there is a blank line at the end. Save this file with a ".gau" extension, for example, "ben.gau".
 
-2) Run "tsubasa.py". A config file will be copied to the current folder and named as "ben.cfg".
+2) Run "tsubasa.py". A config file will be copied to the current folder and named as "ben.yml".
 
-3) Modify the config file according to your own needs. For details, please see the manual. In this example, we only modify the "opttail" part to set the basis set.
-```
-++opttail++
-C H 0
-6-31+g*
-****
+3) Modify the config file according to your own needs. The config file includes the commands for Gaussian. Usually, it is already good to use. Here, we do not edit anything. 
 
---opttail--
-```
 4) Run "tsubasa.py" again. Program will now automatically perform Optimization, Frequency calculation, RESP calculation, and identify the internal coordinates and MM functions, and finally prepare MM input file. Files are saved in "tsubasa" folder.
 ```
    ruixingw@boonlay-ntu test $ ls
    freqben.fchk  freqben.log  input.inp  mmben.com  tsubasa/
    ruixingw@boonlay-ntu test $ cd tsubasa
-   ben.cfg  ben.tsubasa  freqben.com   freqben.log  mmben.com   optben.com  respben.ac   respben.com
+   ben.yml  ben.tsubasa  freqben.com   freqben.log  mmben.com   optben.com  respben.mol2   respben.com
    ben.gau  freqben.chk  freqben.fchk  input.inp    optben.chk  optben.log  respben.chk  respben.log
 ```
 
-The **mmben.com** and **freqben.fchk** is then used to perform Hessian Fitting job. **freqben.log** is used to evaluate the performance (L1 Norm of frequencies). **input.inp** includes internal coordinates information but is not used for now. 
+The **mmben.com** and **freqben.fchk** is then used to perform Hessian Fitting job. **freqben.log** is used to evaluate the performance (L1 Norm of frequencies). **input.inp** includes internal coordinates information but is not used. 
 
 The content of **mmben.com** is as follow.
 
@@ -137,6 +129,8 @@ VDW ha  1.4590  0.0150
 ```
 AmbTrs * ca ca * 0 180 0 0 0.0 XXXXXX 0.0 0.0 4.0
 ```
+
+6) You are ready for parameterization. Go ahead to Parmhess.
 
 ## Other options
 For other options, please see the Tsubasa Reference Manual.
