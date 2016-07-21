@@ -166,12 +166,13 @@ if startfrom < 1:
         sys.exit()
 
     if stopafter == 1:
-        logging.warning('User request stop after optimization')
+        logging.warning('User request stopping after optimization')
         sys.exit()
 
 if startfrom < 2:
     with open(freqfile.comname, 'w') as f:
-        freqhead = '%chk=' + os.path.split(optfile.chkname)[1] + '\n' + freqhead
+        freqhead = ('%chk=' + os.path.split(optfile.chkname)[1]
+                    + '\n' + freqhead)
         f.write(freqhead)
     logging.info('Running frequency calculation...')
     freqfile.com.rung09()
@@ -183,7 +184,7 @@ if startfrom < 2:
         sys.exit()
 
     if stopafter == 2:
-        logging.warning('User request stop after frequency')
+        logging.warning('User request stopping after frequency calculation')
         sys.exit()
 if startfrom < 3:
     with open(respfile.comname, 'w') as f:
@@ -207,12 +208,8 @@ if startfrom < 4:
     logging.info('Run antechamber:')
     respfile.log.runantecham()
     if stopafter == 4:
-        loggin.warning('User request stop after antechamber')
+        logging.warning('User request stopping after antechamber')
         sys.exit()
-
-logging.debug('Clean directory: ' + clean)
-
-os.system(clean)
 
 logging.info('Format CHK file by: ')
 
@@ -341,7 +338,8 @@ input = input + '\n\nLink start\n'
 for key in sorteddihd:
     # key is sorted dihdfunc
     mmtail = mmtail + 'AmbTrs ' + key + ' 0 180 0 0 0.0 XXXXXX 0.0 0.0 1.0\n'
-    # For each key of dihdfunc.key, filter x in dihedral.list.values(obj) to find out whose x.func(obj) match this key
+    # For each key of dihdfunc.key, filter x in
+    # dihedral.list.values(obj) to find out whose x.func(obj) match this key
     # 'this' will be the dihd obj who satisfy the condition aforementioned
     this = filter(lambda x: x.func.link == key, thisgeom.dihdlist.values())
     this = list(set(this))
@@ -395,14 +393,14 @@ radii = {}
 welldepth = {}
 # read all vdw in files
 with open(os.path.join(pwd, 'vdw.dat'), 'r') as f:
-    for string in f.readlines():
+    for string in f:
         item = string.split()
         radii.update({item[0].strip(' '): item[1].strip(' ')})
         welldepth.update({item[0].strip(' '): item[2].strip(' ')})
 if externalvdw:
     logging.info('Read user provided vdW parameters from ' + externalvdw)
     with open(externalvdw, 'r') as f:
-        for string in f.readlines():
+        for string in f:
             item = string.split()
             radii.update({item[0].strip(' '): item[1].strip(' ')})
             welldepth.update({item[0].strip(' '): item[2].strip(' ')})
@@ -427,7 +425,7 @@ with open(mmfile.comname, 'w') as f:
 
 logging.debug('...done\n\nEND')
 os.system(clean)
-freqfile.runformchk()
+
 os.system('mkdir tsubasa')
 os.system('mv * tsubasa')
 os.system('cp tsubasa/mm* .')
@@ -435,3 +433,4 @@ os.system('cp tsubasa/' + os.path.split(freqfile.fchkname)[1] + ' .')
 os.system('cp tsubasa/' + os.path.split(freqfile.fchkname)[1] + ' .')
 os.system('cp tsubasa/' + os.path.split(freqfile.logname)[1] + ' .')
 os.system('cp tsubasa/input.inp .')
+os.system(clean)
