@@ -1,5 +1,6 @@
-  h1          1.3870  0.0157             Veenstra et al JCC,8,(1992),963 
   h2          1.2870  0.0157             Veenstra et al JCC,8,(1992),963 
+  h1          1.3870  0.0157             Veenstra et al JCC,8,(1992),963 
+  H          1.3870  0.0157             Veenstra et al JCC,8,(1992),963 
   h3          1.1870  0.0157             Veenstra et al JCC,8,(1992),963 
   h4          1.4090  0.0150             Spellmeyer, one electrowithdr. neighbor
   h5          1.3590  0.0150             Spellmeyer, two electrowithdr. neighbor
@@ -55,6 +56,7 @@
   n1          1.8240  0.1700             OPLS
   n2          1.8240  0.1700             OPLS
   n3          1.8240  0.1700             OPLS
+  NT          1.8240  0.1700             OPLS
   n4          1.8240  0.1700             OPLS
   na          1.8240  0.1700             OPLS
   nb          1.8240  0.1700             OPLS

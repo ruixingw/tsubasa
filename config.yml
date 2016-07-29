@@ -2,7 +2,7 @@ g09rt: myg09boon
 g09a2rt: myg09a2boon
 
 antechamber: antechamber -c resp
-clean: rm *gaussian*
+clean: rm *gaussian* esout qout QOUT punch 
 
 
 opthead: |
@@ -21,7 +21,7 @@ opttail: |
 freqhead: |
   %mem=16gb
   %nproc=12
-  #p b3lyp/chkbas int=ultrafine symm=loose geom=allcheck guess=tcheck freq=intmodes iop(7/33=1)
+  #p b3lyp/chkbas int=ultrafine symm=loose geom=(allcheck,modredundant) guess=tcheck freq=intmodes iop(7/33=1)
 
 
 resphead: |
