@@ -55,7 +55,7 @@ class Dihdfunc(object):
         c = dihdobj[3].atomtype
         d = dihdobj[4].atomtype
         self.periodicity = 2
-        self.phase = 180.0
+        self.phase = 0.0
         self.npaths = 1.0
         if b > c:
             a, d = d, a
@@ -435,12 +435,12 @@ def buildmmfile(thisgeom, files, args, mmhead):
             1] + '\n' + 'qmlog=' + os.path.split(qmfile.logname)[1] + '\n'
     input = input + '\n\nLink start\n'
 
-    # dihedral is assigned n=2 ,phase=180 and Npaths=1 temporarily
+    # dihedral is assigned n=2 ,phase=0 and Npaths=1 temporarily
 
     for key in sorteddihd:
         # key is sorted dihdfunc
         mmtail = (
-            mmtail + 'AmbTrs ' + key + ' 0 180 0 0 0.0 XXXXXX 0.0 0.0 1.0\n')
+            mmtail + 'AmbTrs ' + key + ' 0 0 0 0 0.0 XXXXXX 0.0 0.0 1.0\n')
         # For each key of dihdfunc.key, filter x in
         # dihedral.list.values(obj) to find
         # out whose x.func(obj) match this key
@@ -496,7 +496,7 @@ def buildmmfile(thisgeom, files, args, mmhead):
         improperlist = improperlist.split(',')
         improperlist = [x.split() for x in improperlist]
         for item in improperlist:
-            mmtail += 'ImpTrs  ' + ' '.join(item) + '  XXXXXX 180.0 2.0\n'
+            mmtail += 'ImpTrs  ' + ' '.join(item) + '  XXXXXX 0.0 2.0\n'
 
     # Add Nonbon function and vdW parameters
     with open('input.inp', 'w') as f:
