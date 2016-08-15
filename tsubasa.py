@@ -364,7 +364,7 @@ def runfreq(ctrl, files):
     return files
 
 
-def readgeom(files):
+def tsubasa(files):
     global myname
     # readfchk
     qmfile = files['freq']
@@ -565,7 +565,7 @@ def main():
     files = runoptresp(ctrl)
     constructfreq(args, blocks, files)
     files = runfreq(ctrl, files)
-    thisgeom = readgeom(files)
+    thisgeom = tsubasa(files)
 
     buildmmfile(thisgeom, files, args, blocks['mmhead'])
 
