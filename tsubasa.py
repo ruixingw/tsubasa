@@ -440,7 +440,7 @@ def buildmmfile(thisgeom, files, args, mmhead):
     for key in sorteddihd:
         # key is sorted dihdfunc
         mmtail = (
-            mmtail + 'AmbTrs ' + key + ' 0 0 0 0 0.0 XXXXXX 0.0 0.0 1.0\n')
+            mmtail + 'AmbTrs ' + key + ' 0 0 0 0 0.0 XXXXXX 0.0 0.0 ')
         # For each key of dihdfunc.key, filter x in
         # dihedral.list.values(obj) to find
         # out whose x.func(obj) match this key
@@ -450,6 +450,8 @@ def buildmmfile(thisgeom, files, args, mmhead):
         for x in this:
             input += str(x[1].atomnum) + '-' + str(x[2].atomnum) + '-' + str(x[
                 3].atomnum) + '-' + str(x[4].atomnum) + '\n'
+        npaths = (len(x[2].neighbor)-1) * (len(x[3].neighbor)-1)
+        mmtail += '{:.1f}'.format(npaths) + '\n'
         input += 'next  # ' + key + '\n'
 
     for key in sortedangle:
