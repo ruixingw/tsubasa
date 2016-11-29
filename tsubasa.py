@@ -15,8 +15,8 @@ import subprocess
 import itertools
 
 
-import rxcclib.molecules as rxmol
-import rxcclib.chemfiles as rxccfile
+import rxcclib.Geometry.molecules as rxmol
+import rxcclib.File.chemfiles as rxccfile
 
 
 class TsubasaException(Exception):
