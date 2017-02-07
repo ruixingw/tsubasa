@@ -1,13 +1,13 @@
-g09rt: myg09boon
-g09a2rt: myg09a2boon
+g09rt: g09
+g09a2rt: g09
 
 antechamber: antechamber -c resp
 clean: rm *gaussian* esout qout QOUT punch 
 
 
 opthead: |
-  %mem=16gb
-  %nproc=12
+  %mem=1gb
+  %nproc=4
   #p b3lyp/6-31+g* geom=connectivity
   int=ultrafine symm=(loose,follow)
   opt=(verytight,maxstep=7,notrust)
@@ -19,14 +19,14 @@ opttail: |
 
 
 freqhead: |
-  %mem=16gb
-  %nproc=12
+  %mem=1gb
+  %nproc=4
   #p b3lyp/chkbas int=ultrafine symm=loose geom=(allcheck,modredundant) guess=tcheck freq=intmodes iop(7/33=1)
 
 
 resphead: |
-  %mem=16gb
-  %nproc=12
+  %mem=1gb
+  %nproc=4
   #p b3lyp/chkbas
   iop(6/33=2,6/42=17,6/41=10)
   int=ultrafine symm=loose
@@ -38,7 +38,7 @@ resptail: |
 
 
 mmhead: |
-  %mem=12gb
+  %mem=1gb
   #p amber=softonly geom=connectivity nosymm
   iop(4/33=3,7/33=1)
   freq=intmodes
