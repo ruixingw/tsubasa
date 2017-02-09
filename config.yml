@@ -10,7 +10,7 @@ opthead: |
   %nproc=4
   #p b3lyp/6-31+g* geom=connectivity
   int=ultrafine symm=(loose,follow)
-  opt=(verytight,maxstep=7,notrust)
+  opt=(verytight)
 
   opt-title
 
