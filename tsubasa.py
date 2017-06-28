@@ -84,12 +84,12 @@ def argparser():
                               'parameters from file'), )
     parser.add_argument('--startfrom',
                         default='opt',
-                        choices=['resp', 'antechamber', 'freq', 'Tsubasa'],
+                        choices=['resp', 'antechamber', 'freq', 'buildMMfile'],
                         help=(
                             "Start from a certain step. Choices"
-                            "=['resp','antechamber','freq','Tsubasa]"))
+                            "=['resp','antechamber','freq','buildMMfile]"))
     parser.add_argument('--stopafter',
-                        default='Tsubasa',
+                        default='buildMMfile',
                         choices=['opt', 'resp', 'antechamber', 'freq'],
                         help=("Stop after a certain step."
                               " Choices=['opt','resp','antechamber','freq']"))
@@ -176,7 +176,7 @@ def handleargs(args):
     ctrl['resp'] = True
     ctrl['antechamber'] = True
     ctrl['freq'] = True
-    ctrl['Tsubasa'] = True
+    ctrl['buildMMfile'] = True
     if args.startfrom == 'resp':
         ctrl['opt'] = False
     elif args.startfrom == 'antechamber':
@@ -186,14 +186,14 @@ def handleargs(args):
         ctrl['opt'] = False
         ctrl['resp'] = False
         ctrl['antechamber'] = False
-    elif args.startfrom == 'Tsubasa':
+    elif args.startfrom == 'buildMMfile':
         ctrl['opt'] = False
         ctrl['resp'] = False
         ctrl['antechamber'] = False
         ctrl['freq'] = False
 
     if args.stopafter == 'freq':
-        ctrl['Tsubasa'] = None
+        ctrl['buildMMfile'] = None
     elif args.stopafter == 'antechamber':
         ctrl['freq'] = None
     elif args.stopafter == 'resp':
@@ -498,7 +498,7 @@ def buildmmfile(thisgeom, files, args, mmhead):
         improperlist = improperlist.split(',')
         improperlist = [x.split() for x in improperlist]
         for item in improperlist:
-            mmtail += 'ImpTrs  ' + ' '.join(item) + '  XXXXXX 0.0 2.0\n'
+            mmtail += 'ImpTrs  ' + ' '.join(item) + '  XXXXXX 180.0 2.0\n'
 
     # Add Nonbon function and vdW parameters
     with open('input.inp', 'w') as f:
@@ -517,14 +517,18 @@ def buildmmfile(thisgeom, files, args, mmhead):
             item = string.split()
             radii.update({item[0].strip(' '): item[1].strip(' ')})
             welldepth.update({item[0].strip(' '): item[2].strip(' ')})
-    if externalvdwfile:
-        logging.info('Read user provided vdW parameters from ' +
-                     externalvdwfile)
-        with open(externalvdwfile, 'r') as f:
-            for string in f:
-                item = string.split()
-                radii.update({item[0].strip(' '): item[1].strip(' ')})
-                welldepth.update({item[0].strip(' '): item[2].strip(' ')})
+    try:
+        if externalvdwfile:
+            logging.info('Read user provided vdW parameters from ' +
+                         externalvdwfile)
+            with open(externalvdwfile, 'r') as f:
+                for string in f:
+                    item = string.split()
+                    radii.update({item[0].strip(' '): item[1].strip(' ')})
+                    welldepth.update({item[0].strip(' '): item[2].strip(' ')})
+    except:
+        logging.error('Read user provided vdW file failed. Please check the format.')
+
     item = []
 
     # find existing atomtypes
@@ -532,8 +536,11 @@ def buildmmfile(thisgeom, files, args, mmhead):
         item.append(atom.atomtype)
     item = list(set(item))
     for i in range(0, len(item)):
-        mmtail += 'VDW ' + item[i] + '  ' + radii[item[i]] + '  ' + welldepth[
-            item[i]] + '\n'
+        try:
+            mmtail += 'VDW ' + item[i] + '  ' + radii[item[i]] + '  ' + welldepth[
+                item[i]] + '\n'
+        except KeyError:
+            mmtail += 'VDW ' + item[i] + '  ' + 'RADII' + '  ' + 'WELLDEPTH' + '\n'
     mmtail = mmtail + '\n'
 
     # write mmfile
