@@ -87,7 +87,7 @@ def argparser():
                         choices=['resp', 'antechamber', 'freq', 'buildMMfile'],
                         help=(
                             "Start from a certain step. Choices"
-                            "=['resp','antechamber','freq','buildMMfile]"))
+                            "=['resp','antechamber','freq','buildMMfile']"))
     parser.add_argument('--stopafter',
                         default='buildMMfile',
                         choices=['opt', 'resp', 'antechamber', 'freq'],
@@ -99,7 +99,7 @@ def argparser():
                         help=(
                             'Add improper functions,'
                             ' IMPROPERLIST should be a list like'
-                            ' "[h5 * c2 *],[c3 * o *]" '))
+                            ' "h5 * c2 *,c3 * o *" '))
     args = parser.parse_args()
     return args
 
