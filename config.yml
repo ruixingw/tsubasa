@@ -21,7 +21,7 @@ opttail: |
 freqhead: |
   %mem=1gb
   %nproc=4
-  #p b3lyp/chkbas int=ultrafine symm=loose geom=(allcheck,modredundant) guess=tcheck freq=intmodes iop(7/33=1)
+  #p b3lyp/chkbas int=ultrafine symm=loose geom=(allcheck,modredundant) guess=tcheck freq=(intmodes,hpmodes)
 
 
 resphead: |
@@ -40,8 +40,8 @@ resptail: |
 mmhead: |
   %mem=1gb
   #p amber=softonly geom=connectivity nosymm
-  iop(4/33=3,7/33=1)
-  freq=intmodes
+  iop(4/33=3)
+  freq=(intmodes,hpmodes)
 
   MM
 
